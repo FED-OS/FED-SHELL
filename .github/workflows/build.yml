@@ -1,110 +1,171 @@
-name: Build Mobile Apps (Android + iOS)
+name: Build EXE
 
-# Runs on every push/PR to main, and can also be triggered manually
-# from the Actions tab in GitHub ("Run workflow" button).
+# Builds the Surf FED Electron browser into a portable Windows EXE
+# and optional macOS / Linux packages using electron-builder.
+#
+# Built-in extensions under extensions/builtin/ are included automatically
+# because they are listed in package.json -> build.files.
+#
+# Triggers:
+#   - push to main      -> build + upload artifact, no release
+#   - manual run        -> build + upload artifact, no release
+#   - pushing a v* tag  -> build + publish a GitHub Release
+
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch: {}
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build Android APKs
-    runs-on: ubuntu-latest
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Windows is the primary target.
+        # The runner versions are pinned to avoid unexpected changes from
+        # the moving *-latest labels.
+        os:
+          - windows-2022
+          - macos-14
+          - ubuntu-24.04
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '18'
           cache: npm
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
+      - name: Install dependencies
+        run: npm install
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Sync web assets into the Android project
-        run: npx cap sync android
-
-      - name: Make gradlew executable
-        run: chmod +x android/gradlew
-
-      - name: Build debug APKs (all architectures + universal)
-        run: cd android && ./gradlew assembleDebug --stacktrace
-
-      - name: Build release APKs (all architectures + universal, debug-signed)
-        run: cd android && ./gradlew assembleRelease --stacktrace
-
-      # Debug APKs: easiest to install directly on any phone for testing.
-      - name: Upload debug APKs
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug-apks
-          path: android/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-
-      # Release APKs: smaller/optimized, one per CPU architecture + universal.
-      # NOTE: these are signed with the Android debug key so this workflow
-      # runs out of the box. Replace with your own keystore before publishing
-      # to the Play Store — see README.md "Signing for production".
-      - name: Upload release APKs
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-apks
-          path: android/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
-
-  build-ios-simulator:
-    name: Build iOS app (Simulator)
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Sync web assets into the iOS project
-        run: npx cap sync ios
-
-      # No Apple Developer account / signing needed for a simulator build.
-      # This produces a .app you can run in Xcode's iOS Simulator to test,
-      # but it CANNOT be installed on a real iPhone (that needs code signing
-      # — see README.md "Real-device iOS builds").
-      - name: Build for iOS Simulator
+      # Verify that each bundled extension has a valid manifest before
+      # packaging it into any release artifact.
+      - name: Validate built-in extensions
+        shell: bash
         run: |
-          xcodebuild \
-            -project ios/App/App.xcodeproj \
-            -scheme App \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO \
-            build
+          set -e
 
-      - name: Upload simulator build
+          if [ ! -d extensions/builtin ]; then
+            echo "No builtin extensions folder found."
+            exit 0
+          fi
+
+          ok=1
+
+          for dir in extensions/builtin/*/; do
+            if [ ! -f "${dir}manifest.json" ]; then
+              echo "::error::Missing manifest.json in $dir"
+              ok=0
+              continue
+            fi
+
+            if ! node -e "JSON.parse(require('fs').readFileSync('${dir}manifest.json', 'utf8'))" 2>/dev/null; then
+              echo "::error::Invalid JSON in ${dir}manifest.json"
+              ok=0
+            else
+              name=$(node -e "console.log(JSON.parse(require('fs').readFileSync('${dir}manifest.json', 'utf8')).name || 'unknown')")
+              ver=$(node -e "console.log(JSON.parse(require('fs').readFileSync('${dir}manifest.json', 'utf8')).version || '0')")
+              echo "OK: $name v$ver ($dir)"
+            fi
+          done
+
+          [ "$ok" = "1" ] || exit 1
+
+      # Ubuntu 24.04 uses libasound2t64 instead of the former libasound2
+      # package name.
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libnotify-dev \
+            libnss3 \
+            libxss1 \
+            libxtst6 \
+            xauth \
+            libavcodec-extra \
+            libgbm1 \
+            libasound2t64
+
+      - name: Build Windows portable EXE
+        if: runner.os == 'Windows'
+        run: npm run dist -- --win --publish never
+
+      - name: Build macOS package
+        if: runner.os == 'macOS'
+        run: npm run dist -- --mac --publish never
+
+      - name: Build Linux package
+        if: runner.os == 'Linux'
+        run: npm run dist -- --linux --publish never
+
+      # Upload all supported outputs generated by electron-builder.
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-ios-simulator
-          path: build/Build/Products/Debug-iphonesimulator/App.app
-          if-no-files-found: error
+          name: Surf-FED-${{ runner.os }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.snap
+            dist/latest*.yml
+          if-no-files-found: ignore
+          retention-days: 30
+
+  # Only runs after every matrix build passes and only for a v* tag push.
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifacts into a single folder
+        shell: bash
+        run: |
+          mkdir -p release
+
+          find artifacts -type f \
+            \( \
+              -name '*.exe' -o \
+              -name '*.dmg' -o \
+              -name '*.AppImage' -o \
+              -name '*.deb' -o \
+              -name '*.snap' -o \
+              -name 'latest*.yml' \
+            \) \
+            -exec cp {} release/ \;
+
+          echo "Release files:"
+          ls -lah release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Surf FED ${{ github.ref_name }}
+          generate_release_notes: true
+          files: release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
