@@ -1,0 +1,22 @@
+# GitHub Sponsors / funding configuration
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# Fed-Poster is a free, open-source, MIT-licensed project with no venture
+# funding and no in-app telemetry. Maintenance, new platform integrations,
+# and theme design are funded by the community. If Fed-Poster saves you
+# time, consider supporting one of the channels below. Thank you! 🧡
+
+github: FED-OS                   # GitHub Sponsors — https://github.com/sponsors/FED-OS
+ko_fi: fedpromptly               # primary community tip jar — https://ko-fi.com/fedpromptly
+patreon: Viraldancandofunk       # https://www.patreon.com/cw/Viraldancandofunk
+# open_collective: fed-poster    # uncomment if an Open Collective is created
+# buy_me_a_coffee:               # uncomment if a BMC is set up
+# liberapay:                     # uncomment if a Liberapay is set up
+# issuehunt: fed-poster          # uncomment to enable IssueHunt bounties
+# lfx_crowdfunding:              # uncomment for LFX Crowdfunding
+# community_bridge:              # uncomment for Community Bridge
+# polar: fed-poster              # uncomment for Polar.sh issue funding
+# tidelift:                      # uncomment for Tidelift
+custom:
+  - https://fedpromptly.com
+  - https://ko-fi.com/W3T61ZU5FS
