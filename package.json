@@ -1,0 +1,25 @@
+{
+  "name": "web2apk",
+  "version": "1.0.0",
+  "description": "Wraps a website into an Android APK using Capacitor, built automatically via GitHub Actions.",
+  "main": "index.js",
+  "scripts": {
+    "sync": "npx cap sync android",
+    "build:apk": "npx cap sync android && cd android && ./gradlew assembleDebug",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "capacitor",
+    "android",
+    "apk",
+    "webview"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0"
+  }
+}
