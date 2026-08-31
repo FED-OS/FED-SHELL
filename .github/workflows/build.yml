@@ -7,7 +7,6 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
-    # Optional manual inputs (you can add URL, app name, etc.)
     inputs:
       target_url:
         description: 'Target URL (overrides default)'
@@ -20,15 +19,12 @@ on:
         type: string
 
 env:
-  # Default values – can be overridden by workflow_dispatch inputs
   TARGET_URL: ${{ github.event.inputs.target_url || 'https://your-default-url.com' }}
   APP_NAME: ${{ github.event.inputs.app_name || 'Surf FED' }}
-  APP_ID: 'com.fed.surf'   # Adjust as needed
+  APP_ID: 'com.fed.surf'   # change to your reverse-domain ID
 
 jobs:
-  # ================================================================
-  # DESKTOP ELECTRON BUILDS (Windows, macOS, Linux)
-  # ================================================================
+  # ======================== DESKTOP (ELECTRON) ========================
   build-desktop-electron:
     name: Desktop Electron (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -40,8 +36,7 @@ jobs:
           - macos-14
           - ubuntu-24.04
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,7 +47,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Validate built-in extensions (from your build.yml)
+      # Ensure electron-builder is available
+      - name: Install electron-builder if missing
+        run: |
+          if ! npx electron-builder --version &>/dev/null; then
+            npm install -D electron-builder
+          fi
+
       - name: Validate built-in extensions
         shell: bash
         run: |
@@ -89,15 +90,15 @@ jobs:
 
       - name: Build Windows portable EXE
         if: runner.os == 'Windows'
-        run: npm run dist -- --win --publish never
+        run: npx electron-builder --win --publish never
 
       - name: Build macOS package
         if: runner.os == 'macOS'
-        run: npm run dist -- --mac --publish never
+        run: npx electron-builder --mac --publish never
 
       - name: Build Linux package
         if: runner.os == 'Linux'
-        run: npm run dist -- --linux --publish never
+        run: npx electron-builder --linux --publish never
 
       - name: Upload Electron artifacts
         uses: actions/upload-artifact@v4
@@ -113,9 +114,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
-  # ================================================================
-  # ANDROID BUILDS (Debug APKs, Release APKs, AAB)
-  # ================================================================
+  # ======================== ANDROID ========================
   build-android-debug:
     name: Android Debug APKs
     runs-on: ubuntu-latest
@@ -130,9 +129,18 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v3
-      # If you have an inject-url.sh script, use it; otherwise skip or adapt
-      - run: chmod +x scripts/inject-url.sh || true
-      - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
+
+      - name: Add Android platform if missing
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
+      - name: Inject URL (optional, adapt to your setup)
+        run: |
+          chmod +x scripts/inject-url.sh || true
+          ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
+
       - run: npm ci
       - run: npx cap sync android
       - run: chmod +x android/gradlew
@@ -157,6 +165,13 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v3
+
+      - name: Add Android platform if missing
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
       - run: chmod +x scripts/inject-url.sh || true
       - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
       - run: npm ci
@@ -183,6 +198,13 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v3
+
+      - name: Add Android platform if missing
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
       - run: chmod +x scripts/inject-url.sh || true
       - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
       - run: npm ci
@@ -195,9 +217,7 @@ jobs:
           path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
 
-  # ================================================================
-  # iOS SIMULATOR BUILD
-  # ================================================================
+  # ======================== iOS SIMULATOR ========================
   build-ios-simulator:
     name: iOS Simulator .app
     runs-on: macos-latest
@@ -207,6 +227,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      - name: Add iOS platform if missing
+        run: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
+
       - run: chmod +x scripts/inject-url.sh || true
       - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
       - run: npm ci
@@ -227,9 +254,7 @@ jobs:
           path: build/Build/Products/Debug-iphonesimulator/App.app
           if-no-files-found: error
 
-  # ================================================================
-  # OPTIONAL: PUBLISH GITHUB RELEASE (only when a v* tag is pushed)
-  # ================================================================
+  # ======================== GITHUB RELEASE (on tags) ========================
   release:
     name: Publish GitHub Release
     needs: [build-desktop-electron, build-android-debug, build-android-release, build-android-bundle, build-ios-simulator]
@@ -260,9 +285,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ================================================================
-  # OPTIONAL: GATHER ALL ARTIFACTS INTO ONE ZIP
-  # ================================================================
+  # ======================== OPTIONAL: GATHER ALL ========================
   package-all:
     name: Gather All Builds (optional)
     if: always()
