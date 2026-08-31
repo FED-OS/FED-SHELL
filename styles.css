@@ -1,0 +1,223 @@
+/* ==========================================================================
+   FED-Shell — Documentation Stylesheet
+   ==========================================================================
+   This stylesheet is used by:
+     - README.md rendered on GitHub Pages (if you enable it)
+     - Any HTML wrapper that embeds the markdown docs
+     - The wiki and discussion preview pages
+
+   It follows a clean, sovereign, developer-first aesthetic:
+   dark-friendly, high-contrast, no external font dependencies.
+   ========================================================================== */
+
+/* ---- CSS Variables / Design Tokens ---- */
+:root {
+  --fed-bg:           #0d1117;
+  --fed-bg-alt:       #161b22;
+  --fed-card:         #1c2128;
+  --fed-border:       #30363d;
+  --fed-text:         #e6edf3;
+  --fed-text-dim:     #8b949e;
+  --fed-accent:       #58a6ff;
+  --fed-accent-alt:   #79c0ff;
+  --fed-success:      #3fb950;
+  --fed-warn:         #d29922;
+  --fed-danger:       #f85149;
+  --fed-mono:         "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+  --fed-sans:         -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --fed-radius:       8px;
+  --fed-max-width:    880px;
+}
+
+/* ---- Reset & Base ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--fed-bg);
+  color: var(--fed-text);
+  font-family: var(--fed-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Layout ---- */
+.fed-container {
+  max-width: var(--fed-max-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ---- Typography ---- */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--fed-text);
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+}
+
+h1 { font-size: 2rem; border-bottom: 1px solid var(--fed-border); padding-bottom: 0.3em; }
+h2 { font-size: 1.5rem; border-bottom: 1px solid var(--fed-border); padding-bottom: 0.25em; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.05rem; }
+
+p { margin: 0.8em 0; }
+
+a {
+  color: var(--fed-accent);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+a:hover { color: var(--fed-accent-alt); text-decoration: underline; }
+
+strong { color: var(--fed-text); font-weight: 600; }
+em     { color: var(--fed-text-dim); }
+
+/* ---- Code ---- */
+code {
+  font-family: var(--fed-mono);
+  font-size: 0.9em;
+  background: var(--fed-bg-alt);
+  color: var(--fed-accent-alt);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  border: 1px solid var(--fed-border);
+}
+
+pre {
+  background: var(--fed-bg-alt);
+  border: 1px solid var(--fed-border);
+  border-radius: var(--fed-radius);
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--fed-text);
+}
+
+/* ---- Tables ---- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2em 0;
+  font-size: 0.9rem;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--fed-border);
+}
+
+th {
+  background: var(--fed-bg-alt);
+  font-weight: 600;
+  color: var(--fed-text);
+}
+
+tr:nth-child(even) td {
+  background: var(--fed-bg-alt);
+}
+
+/* ---- Blockquotes ---- */
+blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1.2em;
+  border-left: 4px solid var(--fed-accent);
+  background: var(--fed-bg-alt);
+  border-radius: 0 var(--fed-radius) var(--fed-radius) 0;
+  color: var(--fed-text-dim);
+}
+
+blockquote p { margin: 0.4em 0; }
+
+/* ---- Lists ---- */
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.3em 0; }
+
+/* ---- Task list checkboxes ---- */
+.task-list-item { list-style: none; }
+.task-list-item-checkbox { margin-right: 0.5em; }
+
+/* ---- Horizontal rule ---- */
+hr {
+  border: none;
+  border-top: 1px solid var(--fed-border);
+  margin: 2em 0;
+}
+
+/* ---- Ko-fi button container ---- */
+.kofi-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+  padding: 1rem;
+  background: var(--fed-card);
+  border: 1px solid var(--fed-border);
+  border-radius: var(--fed-radius);
+}
+
+.kofi-container img {
+  border: 0;
+  height: 36px;
+}
+
+/* ---- Badge / pill ---- */
+.fed-badge {
+  display: inline-block;
+  padding: 0.15em 0.6em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 12px;
+  background: var(--fed-accent);
+  color: var(--fed-bg);
+  margin-right: 0.3em;
+}
+
+.fed-badge-success { background: var(--fed-success); }
+.fed-badge-warn    { background: var(--fed-warn); color: var(--fed-bg); }
+.fed-badge-danger  { background: var(--fed-danger); color: var(--fed-bg); }
+
+/* ---- Callout boxes ---- */
+.fed-callout {
+  border-radius: var(--fed-radius);
+  padding: 1rem 1.2rem;
+  margin: 1.2em 0;
+  border-left: 4px solid;
+}
+
+.fed-callout-info    { border-color: var(--fed-accent); background: rgba(88,166,255,0.08); }
+.fed-callout-warn    { border-color: var(--fed-warn);   background: rgba(210,153,34,0.08); }
+.fed-callout-danger  { border-color: var(--fed-danger); background: rgba(248,81,73,0.08); }
+.fed-callout-success { border-color: var(--fed-success); background: rgba(63,185,80,0.08); }
+
+.fed-callout-title {
+  font-weight: 600;
+  margin-bottom: 0.3em;
+  display: block;
+}
+
+/* ---- Print-friendly ---- */
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+  a { color: #000; text-decoration: underline; }
+  pre, code { background: #f4f4f4; color: #000; border-color: #ccc; }
+  .kofi-container { display: none; }
+  h1, h2 { border-color: #ccc; }
+  .fed-callout { border-color: #999; background: #f9f9f9; }
+}

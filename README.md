@@ -195,4 +195,39 @@ FED-Shell/
 
 ---
 
+## 💛 Support FED-Shell
+
+FED-Shell is free, open-source software built and maintained by the FED-OS
+community. If it saves you time, consider supporting development:
+
+<a href='https://ko-fi.com/fedpromptly' target='_blank'>
+    <img height='36' style='border:0px;height:36px;' src='https://ko-fi.com/img/githubbutton_sm.svg' border='0' alt='Buy Me a Coffee at ko-fi.com' />
+</a>
+
+Other ways to support:
+- ⭐ Star this repo
+- 🐛 Report bugs via [Issues](https://github.com/FED-OS/FED-Shell/issues)
+- 💬 Join the [forum](https://fedpromptly.com/forum)
+- 📝 Contribute — see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+---
+
+## 📚 Documentation
+
+| Document | What it covers |
+|----------|----------------|
+| [BUILD.md](BUILD.md) | Prerequisites and build commands per platform |
+| [INSTALL.md](INSTALL.md) | Installing the output apps |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Distribution channels |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
+| [SECURITY.md](SECURITY.md) | Reporting vulnerabilities |
+| [FAQ.md](FAQ.md) | Frequently asked questions |
+| [ROADMAP.md](ROADMAP.md) | What's planned next |
+| [ADR.md](ADR.md) | Architecture decision records |
+| [GOVERNANCE.md](GOVERNANCE.md) | Project governance |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+| [Wiki](wiki/Home.md) | Deep-dive guides |
+
+---
+
 *Part of the FED-OS ecosystem — the sovereign developer's stack.*
