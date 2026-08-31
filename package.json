@@ -6,6 +6,7 @@
   "scripts": {
     "sync": "npx cap sync android",
     "build:apk": "npx cap sync android && cd android && ./gradlew assembleDebug",
+    "dist": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -21,5 +22,9 @@
     "@capacitor/cli": "^8.5.0",
     "@capacitor/core": "^8.5.0",
     "@capacitor/ios": "^8.5.0"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
   }
 }
