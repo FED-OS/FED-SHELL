@@ -1,15 +1,16 @@
-name: Build EXE
+name: Build Desktop (Electron)
 
-# Builds the Surf FED Electron browser into a portable Windows EXE
-# and optional macOS / Linux packages using electron-builder.
+# ──────────────────────────────────────────────────────────────────────────────
+# FED-Shell — Desktop-only Electron build pipeline
 #
-# Built-in extensions under extensions/builtin/ are included automatically
-# because they are listed in package.json -> build.files.
+# Builds Windows (NSIS installer), macOS (DMG), and Linux (AppImage + deb)
+# in parallel using electron-builder. Runs on push to main, on v* tags, and
+# manually via workflow_dispatch.
 #
-# Triggers:
-#   - push to main      -> build + upload artifact, no release
-#   - manual run        -> build + upload artifact, no release
-#   - pushing a v* tag  -> build + publish a GitHub Release
+# This is the desktop-focused companion to build-all.yml. If build-all.yml
+# is present it already includes these desktop jobs; this file is provided
+# so that either workflow can run standalone.
+# ──────────────────────────────────────────────────────────────────────────────
 
 on:
   push:
@@ -17,28 +18,47 @@ on:
       - main
     tags:
       - 'v*'
-
   workflow_dispatch:
+    inputs:
+      target_url:
+        description: '🔗 Target URL (overrides default)'
+        required: false
+        type: string
+      app_name:
+        description: '📱 App display name (overrides default)'
+        required: false
+        default: 'FED Shell'
+        type: string
+      app_id:
+        description: '🆔 Reverse-domain app ID (overrides default)'
+        required: false
+        default: 'com.fed.shell'
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  TARGET_URL: ${{ github.event.inputs.target_url || 'https://your-default-url.com' }}
+  APP_NAME: ${{ github.event.inputs.app_name || 'FED Shell' }}
+  APP_ID: ${{ github.event.inputs.app_id || 'com.fed.shell' }}
 
 jobs:
-  build:
-    name: Build (${{ matrix.os }})
+  build-desktop:
+    name: Desktop Electron (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
-        # Windows is the primary target.
-        # The runner versions are pinned to avoid unexpected changes from
-        # the moving *-latest labels.
-        os:
-          - windows-2022
-          - macos-14
-          - ubuntu-24.04
-
+        include:
+          - os: windows-2022
+            platform: win
+          - os: macos-14
+            platform: mac
+          - os: ubuntu-24.04
+            platform: linux
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -46,30 +66,38 @@ jobs:
           node-version: '18'
           cache: npm
 
+      - name: Inject URL into config.json
+        shell: bash
+        run: |
+          chmod +x scripts/inject-url.sh || true
+          ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
+
       - name: Install dependencies
         run: npm install
 
-      # Verify that each bundled extension has a valid manifest before
-      # packaging it into any release artifact.
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev libnotify-dev libnss3 libxss1 libxtst6 \
+            xauth libavcodec-extra libgbm1 libasound2t64
+
       - name: Validate built-in extensions
         shell: bash
         run: |
           set -e
-
           if [ ! -d extensions/builtin ]; then
             echo "No builtin extensions folder found."
             exit 0
           fi
-
           ok=1
-
           for dir in extensions/builtin/*/; do
             if [ ! -f "${dir}manifest.json" ]; then
               echo "::error::Missing manifest.json in $dir"
               ok=0
               continue
             fi
-
             if ! node -e "JSON.parse(require('fs').readFileSync('${dir}manifest.json', 'utf8'))" 2>/dev/null; then
               echo "::error::Invalid JSON in ${dir}manifest.json"
               ok=0
@@ -79,43 +107,15 @@ jobs:
               echo "OK: $name v$ver ($dir)"
             fi
           done
-
           [ "$ok" = "1" ] || exit 1
 
-      # Ubuntu 24.04 uses libasound2t64 instead of the former libasound2
-      # package name.
-      - name: Install Linux build dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libnotify-dev \
-            libnss3 \
-            libxss1 \
-            libxtst6 \
-            xauth \
-            libavcodec-extra \
-            libgbm1 \
-            libasound2t64
+      - name: Build desktop installer
+        run: npm run dist -- --${{ matrix.platform }} --publish never
 
-      - name: Build Windows portable EXE
-        if: runner.os == 'Windows'
-        run: npm run dist -- --win --publish never
-
-      - name: Build macOS package
-        if: runner.os == 'macOS'
-        run: npm run dist -- --mac --publish never
-
-      - name: Build Linux package
-        if: runner.os == 'Linux'
-        run: npm run dist -- --linux --publish never
-
-      # Upload all supported outputs generated by electron-builder.
-      - name: Upload build artifacts
+      - name: Upload desktop artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Surf-FED-${{ runner.os }}
+          name: FED-Shell-Electron-${{ matrix.platform }}
           path: |
             dist/*.exe
             dist/*.dmg
@@ -123,49 +123,5 @@ jobs:
             dist/*.deb
             dist/*.snap
             dist/latest*.yml
-          if-no-files-found: ignore
+          if-no-files-found: warn
           retention-days: 30
-
-  # Only runs after every matrix build passes and only for a v* tag push.
-  release:
-    name: Publish GitHub Release
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-24.04
-
-    permissions:
-      contents: write
-
-    steps:
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Flatten artifacts into a single folder
-        shell: bash
-        run: |
-          mkdir -p release
-
-          find artifacts -type f \
-            \( \
-              -name '*.exe' -o \
-              -name '*.dmg' -o \
-              -name '*.AppImage' -o \
-              -name '*.deb' -o \
-              -name '*.snap' -o \
-              -name 'latest*.yml' \
-            \) \
-            -exec cp {} release/ \;
-
-          echo "Release files:"
-          ls -lah release
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Surf FED ${{ github.ref_name }}
-          generate_release_notes: true
-          files: release/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

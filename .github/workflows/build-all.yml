@@ -1,86 +1,157 @@
-name: 🏗️ FED-Shell — Universal Fleet Build
+name: Build Desktop (Electron) + Mobile
 
-# ────────────────────────────────────────────────────────────────
-# ONE URL input → native apps for EVERY platform in a single run.
+# ─────────────────────────────────────────────────────────────────────────────
+# FED-Shell — Unified build pipeline
 #
-#   Android:  Debug APKs (per-ABI + universal)
-#             Release APKs (per-ABI + universal, debug-signed)
-#             Release AAB (for Google Play upload)
-#   iOS:      Simulator .app (no Apple account needed)
-#   Desktop:  Windows .exe  (PySide6 + PyInstaller)
-#             macOS .app    (PySide6 + PyInstaller)
-#             Linux binary  (PySide6 + PyInstaller)
-#   Electron: (optional) up to 2 separate repos, win/mac/linux
-#   Tauri:    (optional) 1 separate repo, win/mac/linux
+#   Desktop:  Electron builds for Windows, macOS, and Linux (in parallel, in-repo)
+#   Android:  Debug APKs, Release APKs, Release AAB (Capacitor)
+#   iOS:      Simulator .app (Capacitor, no signing)
+#   Release:  Auto-published to GitHub Releases when a v* tag is pushed
+#   Gather:   Convenience zip of all artifacts (always runs)
 #
-# Trigger manually from the Actions tab → "Run workflow".
-# ────────────────────────────────────────────────────────────────
+# Triggers:
+#   - push to main (build only, no release)
+#   - push of v* tags (build + auto-release)
+#   - manual workflow_dispatch (build with custom URL/name/id)
+# ─────────────────────────────────────────────────────────────────────────────
 
 on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       target_url:
-        description: "🔗 Target URL (e.g. https://your-site.github.io)"
-        required: true
+        description: '🔗 Target URL (overrides default)'
+        required: false
         type: string
       app_name:
-        description: "📱 App display name"
-        required: true
-        default: "FED App"
+        description: '📱 App display name (overrides default)'
+        required: false
+        default: 'FED Shell'
         type: string
       app_id:
-        description: "🆔 Reverse-domain app ID (e.g. com.fed.myapp)"
-        required: true
-        default: "com.fed.myapp"
+        description: '🆔 Reverse-domain app ID (overrides default)'
+        required: false
+        default: 'com.fed.shell'
         type: string
-      build_electron:
-        description: "⚡ Also build Electron apps from separate repos?"
-        required: false
-        default: false
-        type: boolean
-      electron_repo_1:
-        description: "Electron repo #1 (owner/name) — leave blank to skip"
-        required: false
-        default: ""
-        type: string
-      electron_repo_2:
-        description: "Electron repo #2 (owner/name) — leave blank to skip"
-        required: false
-        default: ""
-        type: string
-      build_tauri:
-        description: "🦀 Also build Tauri app from a separate repo?"
-        required: false
-        default: false
-        type: boolean
-      tauri_repo:
-        description: "Tauri repo (owner/name) — leave blank to skip"
-        required: false
-        default: ""
-        type: string
-  push:
-    branches: [main]
-    paths:
-      - "scripts/**"
-      - "native-desktop/**"
-      - "capacitor.config.json"
 
 permissions:
   contents: read
   actions: write
 
-# ── Shared env so every job sees the same URL/name/id ───────────
+# ── Shared env so every job sees the same URL/name/id ────────────────────────
 env:
-  TARGET_URL: ${{ github.event.inputs.target_url || 'https://example.com' }}
-  APP_NAME: ${{ github.event.inputs.app_name || 'FED App' }}
-  APP_ID: ${{ github.event.inputs.app_id || 'com.fed.myapp' }}
+  TARGET_URL: ${{ github.event.inputs.target_url || 'https://your-default-url.com' }}
+  APP_NAME: ${{ github.event.inputs.app_name || 'FED Shell' }}
+  APP_ID: ${{ github.event.inputs.app_id || 'com.fed.shell' }}
 
 jobs:
-  # ══════════════════════════════════════════════════════════════
-  # JOB 1 — ANDROID DEBUG (per-ABI APKs + universal)
-  # ══════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DESKTOP (ELECTRON) — Windows / macOS / Linux in parallel
+  # ═══════════════════════════════════════════════════════════════════════════
+  build-desktop-electron:
+    name: Desktop Electron (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-2022
+          - macos-14
+          - ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+
+      - name: Inject URL into config.json
+        shell: bash
+        run: |
+          chmod +x scripts/inject-url.sh || true
+          ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
+
+      - name: Install dependencies
+        run: npm install
+
+      # Ensure electron-builder is available
+      - name: Install electron-builder if missing
+        run: |
+          if ! npx electron-builder --version &>/dev/null; then
+            npm install -D electron-builder
+          fi
+
+      - name: Validate built-in extensions
+        shell: bash
+        run: |
+          set -e
+          if [ ! -d extensions/builtin ]; then
+            echo "No builtin extensions folder found."
+            exit 0
+          fi
+          ok=1
+          for dir in extensions/builtin/*/; do
+            if [ ! -f "${dir}manifest.json" ]; then
+              echo "::error::Missing manifest.json in $dir"
+              ok=0
+              continue
+            fi
+            if ! node -e "JSON.parse(require('fs').readFileSync('${dir}manifest.json', 'utf8'))" 2>/dev/null; then
+              echo "::error::Invalid JSON in ${dir}manifest.json"
+              ok=0
+            else
+              name=$(node -e "console.log(JSON.parse(require('fs').readFileSync('${dir}manifest.json', 'utf8')).name || 'unknown')")
+              ver=$(node -e "console.log(JSON.parse(require('fs').readFileSync('${dir}manifest.json', 'utf8')).version || '0')")
+              echo "OK: $name v$ver ($dir)"
+            fi
+          done
+          [ "$ok" = "1" ] || exit 1
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev libnotify-dev libnss3 libxss1 libxtst6 \
+            xauth libavcodec-extra libgbm1 libasound2t64
+
+      - name: Build Windows installer
+        if: runner.os == 'Windows'
+        run: npm run dist -- --win --publish never
+
+      - name: Build macOS package
+        if: runner.os == 'macOS'
+        run: npm run dist -- --mac --publish never
+
+      - name: Build Linux package
+        if: runner.os == 'Linux'
+        run: npm run dist -- --linux --publish never
+
+      - name: Upload Electron artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: FED-Shell-Electron-${{ runner.os }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.snap
+            dist/latest*.yml
+          if-no-files-found: ignore
+          retention-days: 30
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ANDROID DEBUG — per-ABI + universal APKs
+  # ═══════════════════════════════════════════════════════════════════════════
   build-android-debug:
-    name: 📱 Android — Debug APKs
+    name: Android Debug APKs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -93,8 +164,18 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v3
-      - run: chmod +x scripts/inject-url.sh
-      - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID"
+
+      - name: Add Android platform if missing
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
+      - name: Inject URL
+        run: |
+          chmod +x scripts/inject-url.sh || true
+          ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
+
       - run: npm ci
       - run: npx cap sync android
       - run: chmod +x android/gradlew
@@ -105,11 +186,11 @@ jobs:
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
-  # ══════════════════════════════════════════════════════════════
-  # JOB 2 — ANDROID RELEASE (per-ABI APKs + universal, debug-signed)
-  # ══════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ANDROID RELEASE — debug-signed release APKs
+  # ═══════════════════════════════════════════════════════════════════════════
   build-android-release:
-    name: 📱 Android — Release APKs
+    name: Android Release APKs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -122,8 +203,15 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v3
-      - run: chmod +x scripts/inject-url.sh
-      - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID"
+
+      - name: Add Android platform if missing
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
+      - run: chmod +x scripts/inject-url.sh || true
+      - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
       - run: npm ci
       - run: npx cap sync android
       - run: chmod +x android/gradlew
@@ -134,11 +222,11 @@ jobs:
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
-  # ══════════════════════════════════════════════════════════════
-  # JOB 3 — ANDROID BUNDLE (.aab for Google Play)
-  # ══════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ANDROID BUNDLE — .aab for Google Play Store
+  # ═══════════════════════════════════════════════════════════════════════════
   build-android-bundle:
-    name: 📱 Android — Release AAB
+    name: Android Release AAB
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -151,8 +239,15 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v3
-      - run: chmod +x scripts/inject-url.sh
-      - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID"
+
+      - name: Add Android platform if missing
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
+      - run: chmod +x scripts/inject-url.sh || true
+      - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
       - run: npm ci
       - run: npx cap sync android
       - run: chmod +x android/gradlew
@@ -163,11 +258,11 @@ jobs:
           path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
 
-  # ══════════════════════════════════════════════════════════════
-  # JOB 4 — iOS SIMULATOR (no Apple account needed)
-  # ══════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════════
+  # iOS SIMULATOR — .app for the iOS Simulator (no Apple Developer account)
+  # ═══════════════════════════════════════════════════════════════════════════
   build-ios-simulator:
-    name: 🍏 iOS — Simulator .app
+    name: iOS Simulator .app
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -175,8 +270,15 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: chmod +x scripts/inject-url.sh
-      - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID"
+
+      - name: Add iOS platform if missing
+        run: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
+
+      - run: chmod +x scripts/inject-url.sh || true
+      - run: ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script, skipping"
       - run: npm ci
       - run: npx cap sync ios
       - name: Build for iOS Simulator
@@ -195,228 +297,56 @@ jobs:
           path: build/Build/Products/Debug-iphonesimulator/App.app
           if-no-files-found: error
 
-  # ══════════════════════════════════════════════════════════════
-  # JOB 5 — DESKTOP (Windows / macOS / Linux) via matrix
-  # ══════════════════════════════════════════════════════════════
-  build-desktop:
-    name: 🖥️ Desktop — ${{ matrix.os_label }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            os_label: Windows
-            platform: windows
-          - os: macos-latest
-            os_label: macOS
-            platform: macos
-          - os: ubuntu-latest
-            os_label: Linux
-            platform: linux
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Linux system deps (PySide6/QtWebEngine)
-        if: matrix.platform == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libegl1 libgl1 libglib2.0-0 libfontconfig1 \
-            libxcb-xinerama0 libxcb-cursor0 libxcb-icccm4 \
-            libxcb-keysyms1 libxcb-shape0 libxcb-randr0 \
-            libxcb-render-util0 libxcb-image0 libxkbcommon0 \
-            libdbus-1-3 libnss3 libxcomposite1 libxdamage1 \
-            libxrandr2 libxtst6 libasound2
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install Python deps
-        run: pip install PySide6 pyinstaller
-
-      - name: Build desktop executable
-        shell: bash
-        run: |
-          python native-desktop/compile-desktop.py \
-            --url "$TARGET_URL" \
-            --name "$APP_NAME" \
-            --platform "${{ matrix.platform }}"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: desktop-${{ matrix.platform }}
-          path: dist/standalone/*
-          if-no-files-found: error
-
-  # ══════════════════════════════════════════════════════════════
-  # JOB 6 — ELECTRON (optional, from separate repos)
-  # ══════════════════════════════════════════════════════════════
-  build-electron:
-    name: ⚡ Electron — ${{ matrix.repo_label }} (${{ matrix.os_label }})
-    if: github.event.inputs.build_electron == 'true'
-    needs: []
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        repo: [one, two]
-        include:
-          - os: ubuntu-latest
-            os_label: Linux
-          - os: macos-latest
-            os_label: macOS
-          - os: windows-latest
-            os_label: Windows
-          - repo: one
-            repo_label: App1
-          - repo: two
-            repo_label: App2
-    steps:
-      - name: Resolve which repo to build
-        id: repo
-        shell: bash
-        run: |
-          if [ "${{ matrix.repo }}" = "one" ]; then
-            echo "name=${{ github.event.inputs.electron_repo_1 }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "name=${{ github.event.inputs.electron_repo_2 }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Skip if no repo specified
-        if: steps.repo.outputs.name == ''
-        shell: bash
-        run: echo "No repo specified for this slot — skipping." && exit 0
-
-      - uses: actions/checkout@v4
-        if: steps.repo.outputs.name != ''
-        with:
-          repository: ${{ steps.repo.outputs.name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: electron-app
-
-      - uses: actions/setup-node@v4
-        if: steps.repo.outputs.name != ''
-        with:
-          node-version: 22
-
-      - name: Install & build
-        if: steps.repo.outputs.name != ''
-        working-directory: electron-app
-        shell: bash
-        run: |
-          npm ci || npm install
-          # Inject the URL if a .env or config placeholder exists
-          if [ -f ".env" ]; then
-            echo "TARGET_URL=$TARGET_URL" >> .env
-          fi
-          if [ -f "config.json" ]; then
-            node -e '
-              const fs=require("fs");
-              let c={};
-              try{c=JSON.parse(fs.readFileSync("config.json","utf8"))}catch(e){}
-              c.targetUrl=process.argv[1];
-              fs.writeFileSync("config.json",JSON.stringify(c,null,2));
-            ' "$TARGET_URL"
-          fi
-          npm run make || npm run build || npx electron-builder --$([ "${{ matrix.os_label }}" = "Windows" ] && echo "win" || [ "${{ matrix.os_label }}" = "macOS" ] && echo "mac" || echo "linux")
-
-      - uses: actions/upload-artifact@v4
-        if: steps.repo.outputs.name != ''
-        with:
-          name: electron-${{ matrix.repo_label }}-${{ matrix.os_label }}
-          path: |
-            electron-app/out/**/*
-            electron-app/dist/**/*
-            electron-app/release/**/*
-          if-no-files-found: warn
-
-  # ══════════════════════════════════════════════════════════════
-  # JOB 7 — TAURI (optional, from a separate repo)
-  # ══════════════════════════════════════════════════════════════
-  build-tauri:
-    name: 🦀 Tauri — ${{ matrix.os_label }}
-    if: github.event.inputs.build_tauri == 'true' && github.event.inputs.tauri_repo != ''
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            os_label: Linux
-          - os: macos-latest
-            os_label: macOS
-          - os: windows-latest
-            os_label: Windows
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.inputs.tauri_repo }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: tauri-app
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Linux deps (Tauri/WebKit)
-        if: matrix.os_label == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev libssl-dev libgtk-3-dev \
-            libayatana-appindicator3-dev librsvg2-dev
-
-      - name: Inject URL into Tauri config
-        working-directory: tauri-app
-        shell: bash
-        run: |
-          if [ -f "src-tauri/tauri.conf.json" ]; then
-            node -e '
-              const fs=require("fs");
-              const p="src-tauri/tauri.conf.json";
-              const c=JSON.parse(fs.readFileSync(p,"utf8"));
-              c.build=c.build||{};
-              c.build.frontendDist=c.build.frontendDist||{};
-              if(typeof c.build.frontendDist==="string"){c.build.devUrl=process.argv[1];}
-              fs.writeFileSync(p,JSON.stringify(c,null,2));
-            ' "$TARGET_URL"
-          fi
-
-      - name: Install & build
-        working-directory: tauri-app
-        shell: bash
-        run: |
-          npm ci || npm install
-          npm run tauri build
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tauri-${{ matrix.os_label }}
-          path: |
-            tauri-app/src-tauri/target/release/bundle/**/*
-            tauri-app/src-tauri/target/release/*.app
-            tauri-app/src-tauri/target/release/*.exe
-            tauri-app/src-tauri/target/release/*.deb
-            tauri-app/src-tauri/target/release/*.AppImage
-          if-no-files-found: warn
-
-  # ══════════════════════════════════════════════════════════════
-  # JOB 8 — GATHER EVERYTHING into one zip (optional convenience)
-  # ══════════════════════════════════════════════════════════════
-  package-all:
-    name: 📦 Gather All Artifacts
-    if: always()
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GITHUB RELEASE — auto-publish on v* tag pushes
+  # ═══════════════════════════════════════════════════════════════════════════
+  release:
+    name: Publish GitHub Release
     needs:
+      - build-desktop-electron
       - build-android-debug
       - build-android-release
       - build-android-bundle
       - build-ios-simulator
-      - build-desktop
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifacts into release folder
+        shell: bash
+        run: |
+          mkdir -p release
+          find artifacts -type f -exec cp {} release/ \;
+          echo "Release files:"
+          ls -lah release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: FED Shell ${{ github.ref_name }}
+          generate_release_notes: true
+          files: release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GATHER ALL — convenience zip of every artifact (runs even if some fail)
+  # ═══════════════════════════════════════════════════════════════════════════
+  package-all:
+    name: Gather All Builds (optional)
+    if: always()
+    needs:
+      - build-desktop-electron
+      - build-android-debug
+      - build-android-release
+      - build-android-bundle
+      - build-ios-simulator
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -425,9 +355,9 @@ jobs:
       - name: Create unified zip
         run: |
           cd all-builds
-          zip -r ../FED-Shell-Full-Build.zip . || true
+          zip -r ../FED-Shell-All-Platforms.zip . || true
       - uses: actions/upload-artifact@v4
         with:
-          name: FED-Shell-Full-Build
-          path: FED-Shell-Full-Build.zip
+          name: FED-Shell-All-Platforms
+          path: FED-Shell-All-Platforms.zip
           if-no-files-found: warn
