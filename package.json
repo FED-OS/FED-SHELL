@@ -1,25 +1,82 @@
 {
-  "name": "web2apk",
+  "name": "fed-shell",
   "version": "1.0.0",
-  "description": "Wraps a website into an Android APK using Capacitor, built automatically via GitHub Actions.",
-  "main": "index.js",
+  "description": "Wraps a website into native apps for every platform using Capacitor (mobile) and Electron (desktop), built automatically via GitHub Actions.",
+  "main": "main.js",
   "scripts": {
+    "start": "electron .",
+    "desktop": "electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux --publish never",
+    "build": "electron-builder",
+    "make": "electron-builder",
     "sync": "npx cap sync android",
     "build:apk": "npx cap sync android && cd android && ./gradlew assembleDebug",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "capacitor",
+    "electron",
     "android",
     "apk",
-    "webview"
+    "webview",
+    "desktop",
+    "ios"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "FED-OS / Fedpromptly",
+  "license": "MIT",
   "dependencies": {
     "@capacitor/android": "^8.5.0",
     "@capacitor/cli": "^8.5.0",
     "@capacitor/core": "^8.5.0",
     "@capacitor/ios": "^8.5.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.fed.shell",
+    "productName": "FED Shell",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "extensions/**/*",
+      "config.json",
+      "www/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "config.json",
+        "to": "config.json"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": ["dmg"],
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Utility"
+    }
   }
 }

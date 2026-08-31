@@ -15,25 +15,28 @@
 ## v1.0.0 — Ship the fleet builder ✅
 
 - [x] Universal `workflow_dispatch` with URL / app name / app ID inputs
-- [x] Parallel CI jobs: Android (debug, release, AAB), iOS sim, Desktop (win/mac/linux)
-- [x] Conditional Electron matrix (up to 2 repos)
-- [x] Conditional Tauri job (Surf-FED)
-- [x] `package-all` aggregation job
-- [x] `scripts/inject-config.py` — one Python injector for all 6 native configs
+- [x] Parallel CI jobs: Android (debug, release, AAB), iOS sim, Desktop Electron (win/mac/linux matrix)
+- [x] In-repo Electron builds via `electron-builder` (no separate-repo checkouts)
+- [x] Tag-triggered GitHub Release (`v*` → `softprops/action-gh-release@v2`)
+- [x] `package-all` aggregation job (`if: always()`)
+- [x] `scripts/inject-config.py` — one Python injector for all native configs + root `config.json` (Electron)
 - [x] `scripts/inject-url.sh` — thin wrapper
-- [x] `native-desktop/main.py` — PySide6 domain-locked WebView
-- [x] `native-desktop/compile-desktop.py` — PyInstaller packager
-- [x] Injection tested end-to-end locally (PokeJumper test case)
-- [x] Full community / governance / docs file set
+- [x] `main.js` — Electron desktop entry point (loads URL from env/config.json, validates extensions)
+- [x] `package.json` — Electron + Capacitor deps, `electron-builder` config (win→portable, mac→dmg, linux→AppImage+deb)
+- [x] `extensions/builtin/core-navigation/manifest.json` — sample extension (CI validation target)
+- [x] `config.json` — root-level config embedded by electron-builder
+- [x] `native-desktop/` — PySide6 domain-locked WebView (legacy desktop target, still supported)
+- [x] Injection tested end-to-end locally (both root + native-desktop config.json)
+- [x] Full community / governance / docs file set (35+ files, wiki, prompts, discussions)
 
 ## v1.1.0 — Polish & automation
 
-- [ ] Automated release-drafter on tag push
 - [ ] Reusable workflow for downstream repos (FED-PLAY, Surf-FED)
 - [ ] Icon generation pipeline (one input image → all platform icons)
 - [ ] Splash screen auto-generation
 - [ ] App version injection from git tags
 - [ ] Lighthouse / performance check on target URL before build
+- [ ] macOS code-signing + notarization (requires Apple Developer secrets)
 
 ## v1.2.0 — App store readiness
 
