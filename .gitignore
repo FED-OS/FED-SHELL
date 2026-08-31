@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+android/app/build/
+android/.gradle/
+android/build/
+android/captures/
+ios/App/build/
+ios/App/Pods/
+dist/
+build/
+temp_build/
+*.spec
+
+# Native generated
+android/app/src/main/assets/public/
+ios/App/App/public/
+
+# Desktop
+native-desktop/config.json
+native-desktop/assets/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Secrets — NEVER commit these
+*.keystore
+*.jks
+*.p12
+*.cer
+*.mobileprovision
+.env
+.env.*
