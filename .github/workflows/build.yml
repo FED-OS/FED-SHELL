@@ -1,24 +1,64 @@
-name: Build Mobile Apps (Android + iOS)
+name: Build FED Shell - Desktop + Mobile
 
 on:
   push:
     branches:
       - main
+    tags:
+      - "v*"
+
   pull_request:
     branches:
       - main
+
   workflow_dispatch:
+    inputs:
+      target_url:
+        description: "Target URL to load in the application"
+        required: false
+        default: ""
+        type: string
+
+      app_name:
+        description: "Application display name"
+        required: false
+        default: "FED Shell"
+        type: string
+
+      app_id:
+        description: "Reverse-domain application ID"
+        required: false
+        default: "com.fed.shell"
+        type: string
 
 permissions:
   contents: read
 
+env:
+  TARGET_URL: ${{ github.event.inputs.target_url || 'https://your-default-url.com' }}
+  APP_NAME: ${{ github.event.inputs.app_name || 'FED Shell' }}
+  APP_ID: ${{ github.event.inputs.app_id || 'com.fed.shell' }}
+
 jobs:
-  build-android:
-    name: Build Android APKs
-    runs-on: ubuntu-latest
+  desktop:
+    name: Desktop Electron (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: win
+            os: windows-2022
+
+          - platform: mac
+            os: macos-14
+
+          - platform: linux
+            os: ubuntu-24.04
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -27,7 +67,92 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Set up JDK 21
+      - name: Inject app configuration
+        shell: bash
+        run: |
+          chmod +x scripts/inject-url.sh || true
+          ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script found; using repository config."
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Validate built-in extensions
+        shell: bash
+        run: |
+          set -e
+
+          if [ ! -d "extensions/builtin" ]; then
+            echo "No builtin extensions folder found."
+            exit 0
+          fi
+
+          valid=1
+
+          for dir in extensions/builtin/*/; do
+            if [ ! -f "${dir}manifest.json" ]; then
+              echo "::error::Missing manifest.json in ${dir}"
+              valid=0
+              continue
+            fi
+
+            if ! node -e "JSON.parse(require('fs').readFileSync('${dir}manifest.json', 'utf8'))"; then
+              echo "::error::Invalid JSON in ${dir}manifest.json"
+              valid=0
+            else
+              echo "Valid extension manifest: ${dir}manifest.json"
+            fi
+          done
+
+          [ "$valid" = "1" ] || exit 1
+
+      - name: Install Linux Electron dependencies
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libnotify-dev \
+            libnss3 \
+            libxss1 \
+            libxtst6 \
+            xauth \
+            libavcodec-extra \
+            libgbm1 \
+            libasound2t64
+
+      - name: Build desktop installer
+        run: npm run dist -- --${{ matrix.platform }} --publish never
+
+      - name: Upload desktop artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: FED-Shell-${{ matrix.platform }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.snap
+            dist/*.yml
+          if-no-files-found: warn
+          retention-days: 30
+
+  android-debug:
+    name: Android Debug APK
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -36,43 +161,39 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Inject app configuration
+        shell: bash
+        run: |
+          chmod +x scripts/inject-url.sh || true
+          ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script found; using repository config."
+
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Sync web assets into Android
+      - name: Sync Capacitor Android project
         run: npx cap sync android
 
-      - name: Make gradlew executable
+      - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
 
-      - name: Build debug APKs
+      - name: Build debug APK
         working-directory: android
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Build release APKs
-        working-directory: android
-        run: ./gradlew assembleRelease --stacktrace
-
-      - name: Upload debug APKs
+      - name: Upload Android debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apks
+          name: FED-Shell-Android-Debug
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+          retention-days: 30
 
-      - name: Upload release APKs
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-apks
-          path: android/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
-
-  build-ios-simulator:
-    name: Build iOS app (Simulator)
-    runs-on: macos-latest
+  android-release:
+    name: Android Release APK and AAB
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -81,13 +202,81 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Inject app configuration
+        shell: bash
+        run: |
+          chmod +x scripts/inject-url.sh || true
+          ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script found; using repository config."
+
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Sync web assets into iOS
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x android/gradlew
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Build release AAB
+        working-directory: android
+        run: ./gradlew bundleRelease --stacktrace
+
+      - name: Upload Android release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FED-Shell-Android-Release-APK
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload Android release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: FED-Shell-Android-Release-AAB
+          path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 30
+
+  ios-simulator:
+    name: iOS Simulator App
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Inject app configuration
+        shell: bash
+        run: |
+          chmod +x scripts/inject-url.sh || true
+          ./scripts/inject-url.sh "$TARGET_URL" "$APP_NAME" "$APP_ID" || echo "No inject script found; using repository config."
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Sync Capacitor iOS project
         run: npx cap sync ios
 
-      - name: Build for iOS Simulator
+      - name: Build iOS Simulator app
         run: |
           xcodebuild \
             -project ios/App/App.xcodeproj \
@@ -98,9 +287,10 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Upload simulator build
+      - name: Upload iOS Simulator app
         uses: actions/upload-artifact@v4
         with:
-          name: app-ios-simulator
+          name: FED-Shell-iOS-Simulator
           path: build/Build/Products/Debug-iphonesimulator/App.app
           if-no-files-found: error
+          retention-days: 30
