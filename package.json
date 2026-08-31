@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Wraps a website into native apps for every platform using Capacitor (mobile) and Electron (desktop), built automatically via GitHub Actions.",
   "main": "main.js",
+  "author": "FED-OS / Fedpromptly <business@fedpromptly.com>",
+  "license": "MIT",
   "scripts": {
     "start": "electron .",
     "desktop": "electron .",
@@ -25,8 +27,6 @@
     "desktop",
     "ios"
   ],
-  "author": "FED-OS / Fedpromptly",
-  "license": "MIT",
   "dependencies": {
     "@capacitor/android": "^8.5.0",
     "@capacitor/cli": "^8.5.0",
@@ -60,7 +60,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
@@ -71,12 +73,18 @@
       "createStartMenuShortcut": true
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "category": "public.app-category.utilities"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
-      "category": "Utility"
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "maintainer": "business@fedpromptly.com"
     }
   }
 }
