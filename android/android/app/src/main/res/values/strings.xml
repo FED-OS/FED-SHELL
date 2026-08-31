@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">FED Shell</string>
-    <string name="title_activity_main">FED Shell</string>
-    <string name="package_name">com.fed.shell</string>
-    <string name="custom_url_scheme">com.fed.shell</string>
-</resources>
