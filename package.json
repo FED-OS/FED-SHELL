@@ -1,10 +1,8 @@
 {
   "name": "fed-shell",
   "version": "1.0.0",
-  "description": "Wraps a website into native apps for every platform using Capacitor (mobile) and Electron (desktop), built automatically via GitHub Actions.",
+  "description": "Wraps a website into native apps for every platform using Capacitor (mobile), Electron (desktop), and Tauri (native macOS), built automatically via GitHub Actions.",
   "main": "main.js",
-  "author": "FED-OS / Fedpromptly <business@fedpromptly.com>",
-  "license": "MIT",
   "scripts": {
     "start": "electron .",
     "desktop": "electron .",
@@ -12,21 +10,34 @@
     "dist:win": "electron-builder --win --publish never",
     "dist:mac": "electron-builder --mac --publish never",
     "dist:linux": "electron-builder --linux --publish never",
+    "dist:all": "electron-builder -mwl --publish never",
     "build": "electron-builder",
     "make": "electron-builder",
     "sync": "npx cap sync android",
+    "sync:ios": "npx cap sync ios",
     "build:apk": "npx cap sync android && cd android && ./gradlew assembleDebug",
+    "build:tv": "npx cap sync android && cd android && ./gradlew assembleDebug -PandroidTv=true",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:mac": "tauri build --target universal-apple-darwin",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "capacitor",
     "electron",
+    "tauri",
     "android",
     "apk",
     "webview",
     "desktop",
-    "ios"
+    "ios",
+    "tv",
+    "tablet",
+    "macos"
   ],
+  "author": "FED-OS / Fedpromptly",
+  "license": "MIT",
   "dependencies": {
     "@capacitor/android": "^8.5.0",
     "@capacitor/cli": "^8.5.0",
@@ -35,7 +46,8 @@
   },
   "devDependencies": {
     "electron": "^31.0.0",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "@tauri-apps/cli": "^2"
   },
   "build": {
     "appId": "com.fed.shell",
@@ -58,12 +70,7 @@
     ],
     "win": {
       "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
+        { "target": "nsis", "arch": ["x64", "arm64"] }
       ]
     },
     "nsis": {
@@ -74,17 +81,16 @@
     },
     "mac": {
       "target": [
-        "dmg"
+        { "target": "dmg", "arch": ["universal"] }
       ],
       "category": "public.app-category.utilities"
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        { "target": "AppImage", "arch": ["x64", "arm64"] },
+        { "target": "deb", "arch": ["x64", "arm64"] }
       ],
-      "category": "Utility",
-      "maintainer": "business@fedpromptly.com"
+      "category": "Utility"
     }
   }
 }
