@@ -1,16 +1,19 @@
 name: Build Mobile Apps (Android + iOS)
 
-# Runs on every push/PR to main, and can also be triggered manually
-# from the Actions tab in GitHub ("Run workflow" button).
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
-  workflow_dispatch: {}
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  build-android:
     name: Build Android APKs
     runs-on: ubuntu-latest
 
@@ -36,19 +39,20 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Sync web assets into the Android project
+      - name: Sync web assets into Android
         run: npx cap sync android
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build debug APKs (all architectures + universal)
-        run: cd android && ./gradlew assembleDebug --stacktrace
+      - name: Build debug APKs
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace
 
-      - name: Build release APKs (all architectures + universal, debug-signed)
-        run: cd android && ./gradlew assembleRelease --stacktrace
+      - name: Build release APKs
+        working-directory: android
+        run: ./gradlew assembleRelease --stacktrace
 
-      # Debug APKs: easiest to install directly on any phone for testing.
       - name: Upload debug APKs
         uses: actions/upload-artifact@v4
         with:
@@ -56,10 +60,6 @@ jobs:
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
-      # Release APKs: smaller/optimized, one per CPU architecture + universal.
-      # NOTE: these are signed with the Android debug key so this workflow
-      # runs out of the box. Replace with your own keystore before publishing
-      # to the Play Store — see README.md "Signing for production".
       - name: Upload release APKs
         uses: actions/upload-artifact@v4
         with:
@@ -84,13 +84,9 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Sync web assets into the iOS project
+      - name: Sync web assets into iOS
         run: npx cap sync ios
 
-      # No Apple Developer account / signing needed for a simulator build.
-      # This produces a .app you can run in Xcode's iOS Simulator to test,
-      # but it CANNOT be installed on a real iPhone (that needs code signing
-      # — see README.md "Real-device iOS builds").
       - name: Build for iOS Simulator
         run: |
           xcodebuild \
