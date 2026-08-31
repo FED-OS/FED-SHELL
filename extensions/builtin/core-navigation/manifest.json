@@ -1,0 +1,7 @@
+{
+  "name": "core-navigation",
+  "version": "1.0.0",
+  "description": "Built-in navigation and URL handling for FED Shell",
+  "author": "FED-OS",
+  "permissions": ["webRequest", "storage"]
+}
