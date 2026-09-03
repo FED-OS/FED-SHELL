@@ -1,3 +1,5 @@
+<img width="2560" height="1440" alt="fed-shell-promo-07-tower" src="https://github.com/user-attachments/assets/574e047e-9583-49e8-ae48-bbc93eb78128" />
+
 # 🏗️ FED-Shell — Universal URL Wrapper
 
 > **One URL in. Native apps for every platform out.**
