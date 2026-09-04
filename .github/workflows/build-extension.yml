@@ -1,0 +1,74 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# web2apk · browser extension CI
+#
+# Runs on every push/PR and produces the Chrome + Edge store upload zips as
+# build artifacts. Tagged releases (v*) also attach the zips to a GitHub
+# Release, so the exact bits reviewed in CI are the bits published.
+# ─────────────────────────────────────────────────────────────────────────────
+name: extension
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+    paths:
+      - 'extension/**'
+      - 'scripts/validate-extension.mjs'
+      - 'scripts/build-extension.sh'
+      - '.github/workflows/build-extension.yml'
+  pull_request:
+    paths:
+      - 'extension/**'
+      - 'scripts/validate-extension.mjs'
+      - 'scripts/build-extension.sh'
+      - '.github/workflows/build-extension.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # required only to attach zips to GitHub Releases on tags
+
+concurrency:
+  group: extension-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-package:
+    name: Validate & package (Chrome + Edge)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate extension (manifest · icons · JS · refs)
+        run: node scripts/validate-extension.mjs
+
+      - name: Build store packages
+        run: bash scripts/build-extension.sh
+
+      - name: Upload zips as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web2apk-extension-${{ github.sha }}
+          path: |
+            dist/chrome-extension-*.zip
+            dist/edge-extension-*.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      # Attach the exact CI-verified zips to a GitHub Release when a tag is pushed.
+      # Manual publishing to the stores stays a human step (review queues apply).
+      - name: Attach zips to GitHub Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/chrome-extension-*.zip
+            dist/edge-extension-*.zip
+          generate_release_notes: true
