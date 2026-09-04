@@ -1,0 +1,448 @@
+/* web2apk extension new-tab dashboard styles. */
+
+:root {
+  --bg: #0b1020;
+  --bg-soft: #131a2e;
+  --fg: #e8ecf4;
+  --muted: #8b95ad;
+  --accent: #4f8cff;
+  --accent-2: #9b5cff;
+  --ok: #22c55e;
+  --err: #ef4444;
+  --card: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.1);
+  --radius: 16px;
+  color-scheme: dark light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f8fc;
+    --bg-soft: #ffffff;
+    --fg: #0b1020;
+    --muted: #5b6478;
+    --card: rgba(11, 16, 32, 0.04);
+    --border: rgba(11, 16, 32, 0.1);
+  }
+}
+
+/* Manual theme override (settings: auto / dark / light) */
+:root[data-theme='dark'] {
+  --bg: #0b1020;
+  --bg-soft: #131a2e;
+  --fg: #e8ecf4;
+  --muted: #8b95ad;
+  --card: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme='light'] {
+  --bg: #f6f8fc;
+  --bg-soft: #ffffff;
+  --fg: #0b1020;
+  --muted: #5b6478;
+  --card: rgba(11, 16, 32, 0.04);
+  --border: rgba(11, 16, 32, 0.1);
+  background-image: none;
+}
+
+:root[data-theme='light'] body {
+  background: #f6f8fc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+body {
+  background: radial-gradient(1400px 700px at 50% -10%, #1a2342 0%, var(--bg) 55%) fixed;
+  color: var(--fg);
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 20px 40px;
+}
+
+/* Clock + greeting */
+.hero {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.clock .time {
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.clock .date {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.greet {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* Search */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  margin-bottom: 26px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.2), 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.search-ico {
+  color: var(--muted);
+  flex: none;
+}
+
+#search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  color: var(--fg);
+  font-size: 15.5px;
+  font-family: inherit;
+  padding: 6px 0;
+  min-width: 0;
+}
+
+#search-input:focus {
+  outline: none;
+}
+
+#search-engine {
+  border: none;
+  background: var(--card);
+  color: var(--fg);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+#search-engine option {
+  background: var(--bg-soft);
+  color: var(--fg);
+}
+
+.go {
+  border: none;
+  border-radius: 999px;
+  padding: 9px 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.go:hover {
+  filter: brightness(1.1);
+}
+
+/* App card */
+.app-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 22px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(6px);
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.app-card .meta {
+  flex: 1;
+  min-width: 220px;
+}
+
+.app-card h1 {
+  margin: 0 0 2px;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.app-card .muted {
+  color: var(--muted);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.app-card .actions {
+  display: flex;
+  gap: 10px;
+}
+
+.app-card .status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* the flex display above would otherwise override [hidden]'s display:none */
+.app-card .status[hidden] {
+  display: none;
+}
+
+.app-card .status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.app-card .status .dot.ok {
+  background: var(--ok);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+}
+
+.app-card .status .dot.down {
+  background: var(--err);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+#app-icon {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 6px;
+}
+
+/* Buttons */
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(79, 140, 255, 0.35);
+}
+
+.ghost {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--fg);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ghost:hover {
+  background: rgba(79, 140, 255, 0.1);
+  border-color: rgba(79, 140, 255, 0.4);
+}
+
+/* Quick links grid */
+.links h2 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--fg);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.borders ease, transform 0.15s ease;
+}
+
+.tile:hover {
+  background: rgba(79, 140, 255, 0.10);
+  border-color: rgba(79, 140, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.tile img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.tile span {
+  font-size: 12.5px;
+  text-align: center;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile.add {
+  border-style: dashed;
+  color: var(--muted);
+  justify-content: center;
+}
+
+.tile.add:hover {
+  color: var(--accent);
+}
+
+/* Footer */
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.foot .spacer {
+  flex: 1;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.link-btn {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+/* Shortcuts sheet */
+.kbd-sheet {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 6, 14, 0.6);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;  justify-content: center;
+  z-index: 10;
+}
+
+/* the flex display above would otherwise override [hidden]'s display:none */
+.kbd-sheet[hidden] {
+  display: none;
+}
+
+.kbd-card {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px 24px;
+  width: min(420px, calc(100vw - 40px));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.kbd-card h3 {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+.kbd-card dl {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.kbd-card dl > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.kbd-card dt {
+  font-size: 13.5px;
+}
+
+.kbd-card dd {
+  margin: 0;
+}
+
+kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.kbd-card .ghost {
+  margin-top: 16px;
+}

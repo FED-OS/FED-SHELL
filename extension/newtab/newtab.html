@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="dark light" />
+    <title>New tab</title>
+    <link rel="stylesheet" href="newtab.css" />
+  <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <div class="clock">
+          <div class="time" id="clock-time">--:--</div>
+          <div class="date" id="clock-date">—</div>
+        </div>
+        <div class="greet" id="greet">Hello</div>
+      </section>
+
+      <form class="search" id="search-form" role="search">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="search-ico">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+        <input id="search-input" type="text" placeholder="Search the web…" autocomplete="off" spellcheck="false" autofocus />
+        <select id="search-engine" aria-label="Search engine" title="Search engine"></select>
+        <button type="submit" class="go" title="Search">Go</button>
+      </form>
+
+      <section class="app-card" id="app-card">
+        <img src="../icons/icon-128.png" alt="" width="56" height="56" id="app-icon" />
+        <div class="meta">
+          <h1 id="app-name">My Web App</h1>
+          <p id="app-url" class="muted">https://example.com/</p>
+        </div>
+        <div class="actions">
+          <button id="btn-open-app" class="primary">Open app</button>
+          <button id="btn-open-window" class="ghost">App window</button>
+        </div>
+        <div class="status" id="status" hidden>
+          <span class="dot" id="status-dot"></span>
+          <span id="status-text">—</span>
+        </div>
+      </section>
+
+      <section class="links" id="links-section" hidden>
+        <h2>Quick links</h2>
+        <div class="grid" id="links-grid"></div>
+      </section>
+
+      <footer class="foot">
+        <span class="muted" id="version">v2.1.0</span>
+        <span class="spacer"></span>
+        <button class="link-btn" id="btn-options">Settings</button>
+        <span class="muted">·</span>
+        <button class="link-btn" id="btn-hints">Shortcuts</button>
+      </footer>
+    </main>
+
+    <div class="kbd-sheet" id="kbd-sheet" hidden>
+      <div class="kbd-card">
+        <h3>Keyboard shortcuts</h3>
+        <dl>
+          <div><dt>Open app window</dt><dd><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd></dd></div>
+          <div><dt>Open dashboard</dt><dd><span class="muted">configure at chrome://extensions/shortcuts</span></dd></div>
+          <div><dt>Focus search</dt><dd><kbd>/</kbd> or <kbd>Ctrl</kbd>+<kbd>K</kbd></div>
+          <div><dt>Open link in new tab</dt><dd><kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+click</dd></div>
+        </dl>
+        <button class="ghost" id="kbd-close">Close</button>
+      </div>
+    </div>
+
+    <script src="../common.js"></script>
+    <script src="newtab.js"></script>
+  </body>
+</html>

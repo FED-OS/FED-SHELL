@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>web2apk — live demo</title>
+  <link rel="stylesheet" href="/demo/demo.css" />
+  <link rel="icon" type="image/png" href="/extension/icons/icon-48.png" />
+</head>
+<body>
+  <header class="masthead">
+    <img src="/extension/icons/icon-128.png" alt="web2apk logo" />
+    <div>
+      <h1>web2apk <span>— Web App Launcher · live demo</span></h1>
+      <p>The actual extension pages, running unmodified in your browser with a faithful <code>chrome.*</code> API shim.</p>
+    </div>
+    <span class="pill">v2.1.1 · Manifest V3 · Chrome &amp; Edge</span>
+  </header>
+
+  <main class="stage">
+    <section class="browser" aria-label="browser mock">
+      <div class="toolbar">
+        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+
+        <div class="omnibox" aria-hidden="true">
+          <span class="lock">🔒</span>
+          <span class="url" id="omni-url">chrome-extension://web2apk-demo/newtab/newtab.html</span>
+        </div>
+
+        <nav class="tabs" role="tablist" aria-label="extension surfaces">
+          <button type="button" role="tab" data-target="newtab" aria-selected="true">New Tab</button>
+          <button type="button" role="tab" data-target="popup" aria-selected="false">Popup</button>
+          <button type="button" role="tab" data-target="options" aria-selected="false">Options</button>
+        </nav>
+
+        <span class="ext" id="ext-icon" title="web2apk — click to open the popup">
+          <img src="/extension/icons/icon-48.png" alt="" />
+          <span class="badge" id="ext-badge" hidden>OK</span>
+        </span>
+      </div>
+
+      <div class="viewport">
+        <iframe class="pane active" data-pane="newtab" title="New Tab dashboard"
+                src="/extension/newtab/newtab.html?p=newtab"></iframe>
+        <iframe class="pane" data-pane="popup" title="Action popup"
+                src="/extension/popup/popup.html?p=popup"></iframe>
+        <iframe class="pane" data-pane="options" title="Options page"
+                src="/extension/options/options.html?p=options"></iframe>
+
+        <p class="hint" id="popout-hint" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <aside class="logwrap" aria-label="API activity log">
+    <header>
+      <span class="live" aria-hidden="true"></span>
+      <span>chrome.* API activity</span>
+      <button type="button" id="log-clear">Clear</button>
+    </header>
+    <ul id="log">
+      <li class="empty">waiting for interaction — click around the UI above…</li>
+    </ul>
+  </aside>
+
+  <footer class="foot">
+    <span>Try: change the app URL in <strong>Options</strong>, then hit <strong>Check status</strong> in the popup — the badge updates live.</span>
+    <span>· <a href="docs.html">Extension docs</a></span>
+    <span>· self-contained demo — the real extension pages, unmodified</span>
+  </footer>
+
+  <script src="/demo/shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+/* web2apk · live demo shell styling
+ * Matches the extension's own design language (navy / blue / purple).
+ */
+
+:root {
+  --navy: #0b1020;
+  --panel: #10182e;
+  --panel-2: #141d36;
+  --line: #24335c;
+  --ink: #e8eefc;
+  --muted: #8c94b4;
+  --blue: #4f8cff;
+  --purple: #9b5cff;
+  --green: #22c55e;
+  --red: #ef4444;
+  --amber: #f5c542;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+body {
+  font: 14px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(155, 92, 255, 0.18), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(79, 140, 255, 0.16), transparent 60%),
+    var(--navy);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── header ─────────────────────────────────────────────────── */
+.masthead {
+  width: min(1080px, 100%);
+  padding: 28px 24px 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.masthead img { width: 44px; height: 44px; border-radius: 10px; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 0.2px;
+}
+
+.masthead h1 span { color: var(--muted); font-weight: 400; }
+
+.masthead p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.masthead .pill {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  background: rgba(16, 24, 46, 0.6);
+}
+
+/* ── browser chrome mock ────────────────────────────────────── */
+.stage {
+  width: min(1080px, calc(100% - 32px));
+  margin: 14px auto 8px;
+}
+
+.browser {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--panel);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* toolbar */
+.browser .toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #16203a, #121a30);
+  border-bottom: 1px solid var(--line);
+}
+
+.toolbar .dots { display: flex; gap: 7px; padding: 0 4px; }
+.toolbar .dots i { width: 11px; height: 11px; border-radius: 50%; }
+
+.toolbar .dots i:nth-child(1) { background: #ef4444; }
+.toolbar .dots i:nth-child(2) { background: #f5c542; }
+.toolbar .dots i:nth-child(3) { background: #22c55e; }
+
+.omnibox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0d1428;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+  min-width: 0;
+}
+
+.omnibox .lock { font-size: 11px; opacity: 0.8; }
+.omnibox .url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* toolbar buttons: switch surfaces */
+.toolbar .tabs {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.toolbar .tabs button {
+  font: 600 12px/1 system-ui, sans-serif;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.toolbar .tabs button:hover { color: var(--ink); background: rgba(79, 140, 255, 0.1); }
+
+.toolbar .tabs button[aria-selected="true"] {
+  color: var(--ink);
+  background: rgba(79, 140, 255, 0.18);
+  border-color: rgba(79, 140, 255, 0.5);
+}
+
+/* the extension's own toolbar icon + badge */
+.toolbar .ext {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: rgba(79, 140, 255, 0.14);
+  border: 1px solid rgba(79, 140, 255, 0.35);
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.toolbar .ext:hover { background: rgba(79, 140, 255, 0.28); }
+
+.toolbar .ext img { width: 18px; height: 18px; }
+
+.toolbar .ext .badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--green);
+  color: #05240f;
+  font: 700 10px/15px system-ui, sans-serif;
+  text-align: center;
+  box-shadow: 0 0 0 2px #121a30;
+}
+
+.toolbar .ext .badge.down { background: var(--red); color: #fff; }
+.toolbar .ext .badge[hidden] { display: none; }
+
+/* ── viewport (the iframes) ──────────────────────────────────── */
+.viewport {
+  position: relative;
+  background: var(--panel-2);
+}
+
+.viewport .pane {
+  display: none;
+  border: 0;
+  width: 100%;
+}
+
+/* only the active pane is visible; JS flips .active on the tabs */
+.viewport .pane.active { display: block; }
+
+/* popup: fixed width like a real action popup */
+.viewport .pane[data-pane="popup"] {
+  width: 320px;
+  height: 560px;
+  margin: 18px auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+}
+
+.viewport .pane[data-pane="options"] { height: 620px; }
+
+.viewport .pane[data-pane="newtab"] { height: 620px; }
+
+/* popout hint when opening app windows/tabs */
+.viewport .hint {
+  display: none;
+  margin: 0;
+  padding: 9px 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: rgba(79, 140, 255, 0.08);
+  border-top: 1px solid var(--line);
+}
+
+.viewport .hint strong { color: var(--blue); }
+
+.viewport .hint[aria-live="polite"] { display: block; }
+
+/* ── API activity log ───────────────────────────────────────── */
+.logwrap {
+  width: min(1080px, calc(100% - 32px));
+  margin: 10px auto 30px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(13, 20, 40, 0.72);
+  overflow: hidden;
+}
+
+.logwrap header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--line);
+  font: 600 12px/1 system-ui, sans-serif;
+  color: var(--muted);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.logwrap header .live {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+
+.logwrap header button {
+  margin-left: auto;
+  font: 500 11.5px/1 system-ui, sans-serif;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.logwrap header button:hover { color: var(--ink); border-color: var(--blue); }
+
+#log {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  max-height: 180px;
+  overflow: auto;
+  font: 12px/1.7 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+#log li {
+  padding: 1px 14px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#log li .t { color: #5a6690; margin-right: 8px; }
+#log li .k { font-weight: 700; margin-right: 8px; }
+#log li .k.storage { color: var(--blue); }
+#log li .k.message { color: var(--purple); }
+#log li .k.system { color: var(--amber); }
+#log li .v { color: var(--ink); }
+
+#log li.empty { color: #5a6690; font-style: italic; }
+
+/* ── footnotes ───────────────────────────────────────────────── */
+.foot {
+  width: min(1080px, calc(100% - 32px));
+  margin: 0 auto 36px;
+  color: var(--muted);
+  font-size: 12.5px;
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.foot a { color: var(--blue); text-decoration: none; }
+.foot a:hover { text-decoration: underline; }
+
+@media (max-width: 720px) {
+  .masthead .pill { display: none; }
+  .viewport .pane[data-pane="popup"] { width: 100%; margin: 10px; }
+}

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark" />
+<title>web2apk extension — docs</title>
+<link rel="icon" type="image/png" href="/extension/icons/icon-48.png" />
+<style>
+/* docs page — matches the demo shell's dark aesthetic, fully self-contained */
+:root { color-scheme: dark;
+  --bg: #0b1220; --bg2: #101a2e; --panel: #14203a; --line: #22304f;
+  --ink: #e8eefc; --muted: #9db0d4; --accent: #4f8cff; --accent2: #9d7bff;
+  --good: #37d67a; --warn: #ffb648; --bad: #ff6b6b; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.65 system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.top { position: sticky; top: 0; z-index: 5; display: flex; gap: 12px;
+  align-items: center; flex-wrap: wrap; padding: 10px 22px;
+  background: rgba(11, 18, 32, 0.92); border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(6px); }
+.top img { width: 26px; height: 26px; border-radius: 6px; }
+.top .crumb { font-weight: 700; letter-spacing: 0.02em; }
+.top .crumb span { color: var(--muted); font-weight: 400; }
+.top nav { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.top nav a { padding: 5px 10px; border-radius: 8px; font-size: 13px;
+  color: var(--muted); border: 1px solid transparent; }
+.top nav a:hover { color: var(--ink); text-decoration: none;
+  border-color: var(--line); background: var(--bg2); }
+.wrap { max-width: 880px; margin: 0 auto; padding: 26px 22px 90px; }
+section.doc { border: 1px solid var(--line); border-radius: 14px;
+  background: var(--panel); padding: 26px 30px; margin: 22px 0; }
+section.doc > h2 { margin: 0 0 4px; font-size: 21px; }
+section.doc > .sub { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+h3 { margin: 26px 0 8px; font-size: 16.5px; color: #dbe5ff; }
+h4 { margin: 20px 0 6px; font-size: 14.5px; color: #cfdcfb; }
+p { margin: 10px 0; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+code { background: #0a1526; border: 1px solid var(--line); padding: 1.5px 6px;
+  border-radius: 6px; font-size: 12.5px; font-family: ui-monospace, "Cascadia Code",
+  Menlo, Consolas, monospace; color: #a8c7ff; }
+pre { background: #0a1526; border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; overflow-x: auto; }
+pre code { background: none; border: 0; padding: 0; font-size: 12.5px;
+  color: #c4d7ff; line-height: 1.55; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0 16px;
+  font-size: 13.5px; }
+th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left;
+  vertical-align: top; }
+th { background: #182642; color: #dbe5ff; }
+td code { white-space: nowrap; }
+blockquote { margin: 12px 0; padding: 10px 14px; border-left: 3px solid var(--accent);
+  background: var(--bg2); border-radius: 0 8px 8px 0; color: #c6d4f3; }
+ul, ol { padding-left: 24px; }
+li { margin: 4px 0; }
+li::marker { color: var(--accent); }
+.foot { max-width: 880px; margin: 0 auto; padding: 0 22px 46px;
+  color: var(--muted); font-size: 13px; }
+.foot a { color: var(--accent2); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <img src="/extension/icons/icon-48.png" alt="web2apk logo" />
+  <span class="crumb">web2apk <span>· extension docs</span></span>
+  <nav aria-label="docs sections">
+    <a href="#ext">Guide</a>
+    <a href="#changelog">Changelog</a>
+    <a href="#privacy">Privacy</a>
+    <a href="#integration">Merge</a>
+    <a href="#license">License</a>
+    <a href="/" id="back">← back to demo</a>
+  </nav>
+</header>
+<div class="wrap">
+<section class="doc" id="ext" aria-label="Extension guide"><h2>Extension guide</h2><p class="sub">from <code>EXTENSIONS.md</code></p><blockquote>
+<p><strong>One codebase, two stores.</strong> The <code>extension/</code> folder is a Manifest V3
+browser extension that turns any website into an app on your desktop
+browser — the same promise the web2apk mobile template makes for
+Android and iOS.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Package</strong></td>
+<td><code>web2apk — Web App Launcher</code> (v2.1.1)</td>
+</tr>
+<tr>
+<td><strong>Chrome Web Store</strong></td>
+<td>upload <code>dist/chrome-extension-v2.1.1.zip</code></td>
+</tr>
+<tr>
+<td><strong>Edge Add-ons</strong></td>
+<td>upload <code>dist/edge-extension-v2.1.1.zip</code></td>
+</tr>
+<tr>
+<td><strong>Manifest</strong></td>
+<td>V3 · <code>minimum_chrome_version: 110</code></td>
+</tr>
+<tr>
+<td><strong>Browsers</strong></td>
+<td>Chrome 110+, Edge 110+, Brave, Opera, Vivaldi (all Chromium ≥ 110)</td>
+</tr>
+</tbody>
+</table>
+<p>Both zips are the same MV3 package — Edge Add-ons accepts Chrome MV3
+extensions as-is. Build once, upload twice.</p>
+<hr />
+<h2>What the extension does</h2>
+<h3>🪟 One-click app windows</h3>
+<p>Click the toolbar icon to open your configured site in a dedicated
+<strong>app window</strong> — a clean, chrome-less popup window with its own taskbar
+entry, sized to your chosen width/height. Prefer plain tabs? Switch the
+default in <strong>Options → Behavior</strong>. Either way, if an app window for the
+same URL is already open, the extension focuses it instead of piling on
+duplicates.</p>
+<h3>🧭 New-tab dashboard</h3>
+<p>A new-tab override replaces the blank tab with a web2apk dashboard:
+large clock and greeting, a pill-shaped search bar (Google / Bing /
+DuckDuckGo — <code>/</code> or <code>Ctrl+K</code> to focus), your app card with live status,
+and your quick-links grid. Theme follows the extension setting
+(auto / dark / light).</p>
+<h3>⚡ Quick links</h3>
+<p>Pin up to 24 favorite sites as chips in the popup and tiles on the new-tab
+dashboard. Managed from <strong>Options → Quick links</strong> (title, URL, favicon
+preview). Favicons are fetched from Google's public s2 favicon service —
+no tracking, no accounts.</p>
+<h3>📶 Status badges</h3>
+<p>The toolbar badge shows whether your configured site is reachable
+(green <strong>OK</strong> / red <strong>DOWN</strong>), re-checked on a schedule you choose
+(off / 5 / 15 / 30 / 60 min) via <code>chrome.alarms</code>. The popup and dashboard
+both surface the same state. Checks use <code>HEAD</code> requests with a <code>GET</code>
+fallback — no page content is ever read.</p>
+<h3>⌨️ Keyboard shortcuts</h3>
+<p><code>Ctrl+Shift+U</code> opens your app in a window · <code>Ctrl+Shift+D</code> opens the
+dashboard. Remappable at <code>chrome://extensions/shortcuts</code> /
+<code>edge://extensions/shortcuts</code>.</p>
+<h3>🖱️ Context menu</h3>
+<p>Right-click anywhere to open the configured app (window or tab), open the
+current page in an app window, or jump to the dashboard.</p>
+<hr />
+<h2>File structure</h2>
+<pre><code>extension/
+├── manifest.json          MV3 manifest (Chrome &amp; Edge compatible)
+├── common.js              shared settings schema + helpers (loaded by SW + pages)
+├── background.js          service worker: app windows, menus, commands, alarms, status checks
+├── icons/                 16 / 32 / 48 / 128 px brand marks
+├── popup/                 toolbar launcher (html/css/js)
+├── options/               settings page (html/css/js) — App / Behavior / Quick links / About
+└── newtab/                new-tab dashboard (html/css/js)
+</code></pre>
+<h2>Development</h2>
+<h3>Load it locally (2 minutes)</h3>
+<ol>
+<li>Open <code>chrome://extensions</code> (or <code>edge://extensions</code>)</li>
+<li>Enable <strong>Developer mode</strong> (top-right toggle)</li>
+<li>Click <strong>Load unpacked</strong> → select the <code>extension/</code> folder</li>
+<li>Pin 🚀 to the toolbar. Right-click → <strong>Options</strong> to set your app URL
+   (default <code>https://example.com</code>), or just click <strong>Open app</strong>.</li>
+</ol>
+<p>Changes to JS/CSS/HTML are picked up on extension reload
+(the ↻ button on the extension card). Visit <code>chrome://extensions</code> →
+<strong>service worker</strong> link to watch <code>console.log</code> output from
+<code>background.js</code>.</p>
+<h3>Rebuild icons</h3>
+<pre><code class="language-bash">python3 scripts/generate-extension-icons.py   # regenerates icons/ from scratch (Pillow)
+</code></pre>
+<h3>Validate &amp; package</h3>
+<pre><code class="language-bash">node scripts/validate-extension.mjs    # manifest · icons · JS syntax · file refs · CSP
+bash scripts/build-extension.sh        # validate → stage → dist/*.zip
+</code></pre>
+<p><code>validate-extension.mjs</code> fails the build on hard errors (missing files,
+broken PNG headers, JS syntax errors, MV3 CSP violations like inline
+<code>onclick=</code> handlers, or remotely-hosted scripts/styles that stores
+reject) and warns on store-review gotchas (over-long descriptions).
+It runs again inside the build script and in CI.</p>
+<h3>Test suite</h3>
+<p>Five layers, all wired into CI (<code>.github/workflows/build-extension.yml</code>):</p>
+<pre><code class="language-bash">node scripts/test-common.mjs             # 29 unit tests — zero deps, pure Node
+xvfb-run -a python3 scripts/smoke-test-extension.py   # full browser smoke test
+node scripts/validate-extension.mjs      # 18 structural checks
+python3 scripts/a11y-check.py            # keyboard a11y — focus rings on every surface
+</code></pre>
+<ul>
+<li><strong>Unit tests</strong> (<code>scripts/test-common.mjs</code>) cover the whole <code>common.js</code>
+  surface — URL normalization, settings sanitizing (invalid input →
+  defaults, clamps, enum whitelists), quick-link capping, search-URL
+  building, and a full <code>chrome.storage</code> mock including the sync→local
+  quota fallback.</li>
+<li><strong>Smoke test</strong> (<code>scripts/smoke-test-extension.py</code>) loads the real
+  extension in Chromium via <code>--load-extension</code>, then drives every
+  surface: popup, all four options tabs, the new-tab dashboard, a live
+  status check, and search navigation — failing on any console error.</li>
+<li><strong>Validator</strong> catches store-review blockers before you ever upload.</li>
+<li><strong>A11y check</strong> (<code>scripts/a11y-check.py</code>) drives every surface with
+  keyboard-only Tab navigation and asserts visible <code>:focus-visible</code> rings
+  on the actually-focused control (and no ring for pointer focus) —
+  caught and fixed a real CSS-specificity bug in the options page.</li>
+<li><strong>Static-demo check</strong> (<code>scripts/static-demo-check.py</code>, 48 assertions)
+  proves the deployable demo works at the site root and under a <code>/sub/</code>
+  path — see <em>Static deployable demo</em> below.</li>
+</ul>
+<h3>Static deployable demo</h3>
+<p>The same demo also builds to a <strong>static site</strong> that runs on any static
+host — GitHub Pages, Netlify, S3, a plain <code>python3 -m http.server</code>:</p>
+<pre><code class="language-bash">python3 scripts/build-static-demo.py     # → build/static-demo/
+python3 scripts/serve-static-demo.py 8932  # serve it (root AND /sub/)
+python3 scripts/static-demo-check.py 8932  # 48 automated checks → PASS
+</code></pre>
+<p>The builder pre-injects the shim loader into copies of the real extension
+HTML (relative paths throughout), renders this documentation set
+(EXTENSIONS / CHANGELOG / PRIVACY / INTEGRATION / LICENSE) to a single
+self-contained <code>docs.html</code>, and self-checks that every internal reference
+resolves. The check script proves it works at the site root <strong>and</strong> under
+a <code>/sub/</code> path (GitHub-Pages project-site layout) — 48/48 checks, wired
+into CI. A deployed copy runs at
+<a href="https://sites.super.myninja.ai/cb5b1689-afba-451c-89e8-b5e0b1a64c29/18698a3b/index.html">sites.super.myninja.ai/cb5b1689-afba-451c-89e8-b5e0b1a64c29/18698a3b/index.html</a>
+(verified end-to-end: shim boots, status badge flips OK, all 5 docs
+sections render, zero console errors).</p>
+<h3>Live demo</h3>
+<h3>Live demo</h3>
+<p><code>demo/</code> contains a standalone preview you can serve locally:</p>
+<pre><code class="language-bash">python3 demo/server.py 8931    # → http://localhost:8931
+</code></pre>
+<p>It loads the <strong>real</strong> extension pages — unmodified — in iframes with a
+faithful <code>chrome.*</code> API shim (storage with Chrome's exact get semantics,
+the background message router including a live <code>no-cors</code> status check).
+Change the app URL in Options, hit <em>Check status</em> in the popup, and
+watch the toolbar badge and API-activity log update live. <code>/docs.html</code>
+renders the full documentation set in the same theme. It's the
+fastest way to try the UI without installing anything.</p>
+<hr />
+<h2>Publishing</h2>
+<h3>Chrome Web Store</h3>
+<ol>
+<li>Pay the one-time <strong>$5 developer registration</strong> at
+   <a href="https://chrome.google.com/webstore/devconsole">chrome.google.com/webstore/devconsole</a>
+   (Google account required).</li>
+<li><strong>New item</strong> → upload <code>dist/chrome-extension-v2.1.1.zip</code>.</li>
+<li>Fill the listing (templates below) → <strong>Submit for review</strong>.</li>
+<li>Review typically takes 1–3 business days. <code>storage</code> is a common,
+   low-friction permission; <code>alarms</code> and <code>contextMenus</code> are API-only and
+   rarely trigger warnings.</li>
+</ol>
+<h3>Edge Add-ons (Microsoft Partner Center)</h3>
+<ol>
+<li>Create a free account at
+   <a href="https://partner.microsoft.com/dashboard/microsoftedge">partner.microsoft.com/dashboard/microsoftedge</a>.</li>
+<li><strong>Create new extension</strong> → upload <code>dist/edge-extension-v2.1.1.zip</code>
+   (same package, no changes).</li>
+<li>Edge review usually completes within a few business days.</li>
+</ol>
+<h3>Listing templates</h3>
+<p><strong>Name</strong></p>
+<pre><code>web2apk — Web App Launcher
+</code></pre>
+<p><strong>Short description (≤ 132 chars)</strong></p>
+<pre><code>Turn any website into an app — one-click app windows, a new-tab dashboard, quick links, and status badges. For Chrome &amp; Edge.
+</code></pre>
+<p><strong>Detailed description</strong></p>
+<pre><code>web2apk turns any website into an app on your desktop browser.
+
+ONE-CLICK APP WINDOWS
+Open your favorite site in a clean, chrome-less window with its own taskbar entry. Configure width and height, or use plain tabs instead — your choice. Already-open app windows are focused, never duplicated.
+
+NEW-TAB DASHBOARD
+A fast new-tab page with a large clock, greeting, and pill search bar (Google / Bing / DuckDuckGo). Your app card shows live reachability status; your quick links are one tile away. Keyboard-first: &quot;/&quot; or Ctrl+K jumps to search.
+
+QUICK LINKS
+Pin up to 24 sites as chips in the popup and tiles on the dashboard. Titles, URLs, and favicons are fully editable in Options.
+
+STATUS BADGES
+A toolbar badge shows OK/DOWN for your configured site, re-checked every 5–60 minutes. Checks are opaque `no-cors` HEAD requests — they resolve only if the network request succeeds, no page content is read, nothing is sent anywhere, and no host permissions are required.
+
+SHORTCUTS
+Ctrl+Shift+U — open app window · Ctrl+Shift+D — open dashboard (remappable in your browser's shortcut settings).
+
+PRIVACY
+All settings live in your browser's local/sync storage. The extension requests no host permissions whatsoever — status checks are opaque no-cors requests that never read page content. No analytics, no accounts, no servers.
+
+web2apk is also available for Android &amp; iOS via the Capacitor template at github.com/ninjatech/web2apk.
+</code></pre>
+<h3>Screenshots &amp; promo tile for the stores</h3>
+<p>Both consoles want 1280×800 screenshots; the Chrome Web Store also shows
+a 440×280 promo tile. The build package includes four ready-to-upload
+assets (all real captures/compositions, no mockups):</p>
+<table>
+<thead>
+<tr>
+<th>Asset</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docs/screenshot-newtab-1280x800.png</code></td>
+<td>store screenshot — the dashboard (auto theme)</td>
+</tr>
+<tr>
+<td><code>docs/screenshot-newtab-dark-1280x800.png</code></td>
+<td>store screenshot — dashboard in dark theme</td>
+</tr>
+<tr>
+<td><code>docs/screenshot-options-1280x800.png</code></td>
+<td>store screenshot — the options page</td>
+</tr>
+<tr>
+<td><code>docs/promo-tile-440x280.png</code></td>
+<td>Chrome Web Store promo tile / Edge small promo</td>
+</tr>
+</tbody>
+</table>
+<p>They were produced by <code>scripts/capture-store-assets.py</code> (drives the real
+options UI to configure realistic settings, then captures each surface)
+and <code>scripts/compose-promo-tile.py</code> (composes the tile from the same
+brand assets the toolbar icons are drawn with). To regenerate:</p>
+<pre><code class="language-bash">xvfb-run -a python3 scripts/capture-store-assets.py  # 3 screenshots
+python3 scripts/compose-promo-tile.py                # 440x280 promo tile
+</code></pre>
+<p>Or make your own the manual way:</p>
+<ol>
+<li>Load the extension unpacked.</li>
+<li>Set your app URL in Options.</li>
+<li>Open a new tab, hide bookmarks bar (<code>Ctrl+Shift+B</code>) for a clean shot.</li>
+<li>Screenshot → save as 1280×800 PNG.</li>
+</ol>
+<hr />
+<h2>Privacy &amp; permissions</h2>
+<table>
+<thead>
+<tr>
+<th>Permission</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>storage</code></td>
+<td>saves your settings (sync, falls back to local on quota)</td>
+</tr>
+<tr>
+<td><code>alarms</code></td>
+<td>schedules the periodic status checks</td>
+</tr>
+<tr>
+<td><code>contextMenus</code></td>
+<td>the right-click menu</td>
+</tr>
+</tbody>
+</table>
+<p>No host permissions at all — not even optional ones. Status checks use
+opaque <code>no-cors</code> requests, which resolve iff the network request succeeded,
+so the extension never reads page content and never needs site access.
+Searches and app opens are plain tab/window navigations handled by the
+browser itself.</p>
+<p>Nothing is collected, transmitted, or sold. There are no analytics, no
+accounts, and no backend — the extension is fully local. The favicons in
+quick links are loaded from Google's public favicon service (the same
+one Chrome itself uses for bookmarks), which sees only the hostnames you
+pinned. The store-required policy lives at
+<a href="#privacy">PRIVACY.md</a>; version history at
+<a href="#changelog">CHANGELOG.md</a>.</p>
+<h2>FAQ</h2>
+<p><strong>Does it work in Edge even though it says Chrome?</strong> Yes — Edge, Brave,
+Opera, and Vivaldi all run Manifest V3 extensions. The package is
+identical; only the store listing differs.</p>
+<p><strong>Why is my site "DOWN"?</strong> The probe is a <code>no-cors</code> HEAD request — it only fails on network errors (DNS failure, connection refused, offline). If the badge shows DOWN but the site opens fine, your network may block HEAD requests; the next scheduled check (or clicking the popup) retries it.</p>
+<p><strong>Where are my settings stored?</strong> <code>chrome.storage.sync</code> when possible
+(shared across your synced browsers), <code>chrome.storage.local</code> as a
+fallback. Options → About shows the live storage area, and Options has
+Export/Import (JSON) plus Reset.</p>
+<p><strong>Is my data sent anywhere?</strong> No. See <em>Privacy &amp; permissions</em> above.</p>
+<p><strong>How does this relate to the web2apk mobile apps?</strong> The extension is the
+desktop sibling of the web2apk Capacitor template: the mobile apps wrap
+your site into Android/iOS binaries, the extension wraps it into your
+desktop browser. Same brand, same defaults, independent version lines —
+see <a href="#integration">INTEGRATION.md</a>.</p>
+<p><strong>Can I try it before installing?</strong> Yes — run the live demo
+(<code>python3 demo/server.py</code>, see <em>Live demo</em> above) to use the real
+popup, options, and dashboard in a plain browser tab with zero install —
+or build the static demo (<code>scripts/build-static-demo.py</code>) and host it
+anywhere (see <em>Static deployable demo</em> above).</p>
+<p><strong>MIT licensed.</strong> See <a href="#license">LICENSE</a> in the repository root (the web2apk project license carries over to the extension).</p></section>
+<section class="doc" id="changelog" aria-label="Changelog"><h2>Changelog</h2><p class="sub">from <code>CHANGELOG.md</code></p><p>Chrome &amp; Edge (Manifest V3). Versions follow the extension's own line — see
+<a href="#integration">INTEGRATION.md</a> for how it relates to the web2apk mobile
+releases. Format loosely based on <a href="https://keepachangelog.com/">Keep a Changelog</a>.</p>
+<h2>[2.1.1] — 2026-02-05</h2>
+<h3>Added</h3>
+<ul>
+<li>Keyboard accessibility pass across all three surfaces (popup, options,
+  new-tab): visible <code>:focus-visible</code> rings on every interactive element, with
+  pointer clicks kept ring-free so mouse users see no visual noise.</li>
+<li>Automated keyboard-drive verification (<code>scripts/a11y-check.py</code>): tabs through
+  every control on every surface and asserts a visible focus ring on each,
+  plus a pointer-focus spot check — now part of the shipping checklist.</li>
+<li>CI now smoke-tests the <strong>packaged zip</strong> (the exact bits users download), not
+  just the source tree, in addition to the source-level Playwright run.</li>
+<li>Static deployable demo: the live demo can now be built as a fully
+  self-contained static site (<code>scripts/build-static-demo.py</code>) with a rendered
+  docs page — no server required, works under any sub-path.</li>
+<li>Store documents: <code>PRIVACY.md</code> (permission justifications and data footprint)
+  and this changelog.</li>
+<li>One-command package verifier (<code>scripts/package-final-check.sh</code>): unzips the
+  deliverable zip and re-runs the entire pipeline on those bits alone —
+  validate, unit tests, a11y check, store-zip build, static-demo build plus
+  its 48 checks at the site root and under <code>/sub/</code>, and a Playwright smoke
+  test of the packaged dist zip itself.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li>Options page: text fields and selects showed <strong>no focus ring at all</strong> when
+  focused by keyboard — author <code>:focus</code> rules at higher specificity were
+  resetting the outline. Added matching-specificity <code>:focus-visible</code> rules so
+  keyboard users always see where they are.</li>
+<li>Demo shim: <code>chrome.runtime.getURL()</code> resolved against the demo directory
+  instead of the extension tree (404 on cross-page links); the
+  "open dashboard" route is now sub-path-safe, which is what makes the
+  GitHub-Pages-style static deploy work.</li>
+<li>Demo loader rewritten: the old strip-and-re-add approach let dynamically
+  inserted page scripts race the HTML parser (and double-execute alongside
+  the originals), causing a flaky <code>Cannot read properties of null</code> crash in
+  the options page when a warm cache made the dynamic copy win. The loader
+  now injects only the shim, into the parser stream via <code>document.write</code>
+  from its head-time script tag — spec-guaranteed to execute before the
+  page's own body-end scripts, which run unmodified. Verified with 6×
+  consecutive 48/48-check runs (was flaking ~1-in-4).</li>
+</ul>
+<h2>[2.1.0] — 2026-01-30</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>Status badges</strong>: optional periodic reachability check for your app URL
+  (<code>chrome.alarms</code>), an OK/DOWN dot in the popup, a colored badge on the
+  toolbar icon, and a status line on the new-tab dashboard. Probe is a
+  <code>no-cors</code> HEAD request — resolves iff the network succeeds, needs <strong>zero
+  host permissions</strong>.</li>
+<li>New-tab dashboard: clock, configurable search engines, quick-links grid
+  (up to 24, favicon tiles), recent-apps strip, keyboard shortcuts sheet.</li>
+<li>Popup: open-as-app-window / open-as-tab buttons, quick links, recents,
+  live status dot with one-click re-check.</li>
+<li>Options: app identity, behavior, quick-links editor, theme (light/dark/auto
+  with CSS <code>color-scheme</code>), Export/Import (JSON), Reset, live storage-area
+  indicator.</li>
+<li>Context menu: "Open app window" / "Open app tab" from any page.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>Permissions slimmed to <code>["storage", "alarms", "contextMenus"]</code> —
+  <code>optional_host_permissions</code> removed entirely once the no-cors probe landed.</li>
+<li>Settings sanitizing is forgiving: scheme-less URLs like <code>github.com</code> are
+  normalized to <code>https://github.com</code> instead of silently reverting to the
+  default.</li>
+</ul>
+<h2>[2.0.0] — 2026-01-23</h2>
+<h3>Added</h3>
+<ul>
+<li>Initial public release: Manifest V3 service-worker architecture, one-click
+  app windows (<code>chrome.windows</code> via window.open fallbacks), new-tab override,
+  options page with sync→local storage fallback, brand icon set drawn from the
+  same mark as the web2apk mobile apps, CI workflow, and store packaging for
+  Chrome Web Store + Edge Add-ons.</li>
+</ul></section>
+<section class="doc" id="privacy" aria-label="Privacy policy"><h2>Privacy policy</h2><p class="sub">from <code>PRIVACY.md</code></p><p><strong>Extension:</strong> web2apk — Web App Launcher (Chrome &amp; Edge, Manifest V3)
+<strong>Version:</strong> 2.1.1 · <strong>Last updated:</strong> 2026-02-05
+<strong>Contact:</strong> the web2apk project maintainers (see the repository listed in Options → About)</p>
+<h2>Summary</h2>
+<p>web2apk collects <strong>no data</strong>. It has no accounts, no servers, no analytics, no
+telemetry, and no third-party code. Everything the extension knows stays inside
+your browser profile, under your control, and every network request it makes is
+one you explicitly configured or triggered. This page explains exactly what the
+extension stores, why each permission exists, and what leaves your browser
+(short answer: nothing, except the status probes you ask for).</p>
+<h2>What is stored, and where</h2>
+<p>All settings live in <code>chrome.storage</code> — a browser-provided key-value store that
+never leaves your machine except through your own browser sync (see below). The
+extension writes exactly these keys:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Area</th>
+<th>Contents</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>w2a:settings</code></td>
+<td><code>chrome.storage.sync</code> (falls back to <code>local</code>)</td>
+<td>Your app name, app URL, theme, badge toggle, quick links</td>
+<td>Restores your configuration; sync keeps it consistent across your own signed-in browsers</td>
+</tr>
+<tr>
+<td><code>w2a:lastStatus</code></td>
+<td><code>chrome.storage.local</code></td>
+<td><code>ok</code>/<code>down</code> + timestamp of the last reachability check</td>
+<td>Shows the status dot/badge without re-probing</td>
+</tr>
+<tr>
+<td><code>w2a:recents</code></td>
+<td><code>chrome.storage.local</code></td>
+<td>Up to 5 app URLs you opened, most-recent first</td>
+<td>Powers the "Recent" list in the popup</td>
+</tr>
+</tbody>
+</table>
+<p><code>chrome.storage.sync</code>, when enabled in your browser, replicates these keys to
+your own synced devices through your browser vendor's sync infrastructure. The
+extension never reads anything else from storage, never reads your browsing
+history, cookies, or any page content, and has <strong>no host permissions at all</strong> —
+it cannot read or modify any website.</p>
+<p>Options → About shows which storage area is live, and Options has
+<strong>Export/Import (JSON)</strong> and <strong>Reset</strong> so you can inspect, move, or erase all
+extension data yourself at any time. Uninstalling the extension removes every
+key listed above.</p>
+<h2>Network activity</h2>
+<p>The extension makes exactly one kind of network request: an optional
+<strong>reachability probe</strong> (a <code>HEAD</code> request in <code>no-cors</code> mode) against <strong>the app
+URL you configured</strong>, when you click "Check status" in the popup or when the
+periodic check you enabled runs. The request is sent directly from your browser
+to your site — there is no proxy, no logging endpoint, and no copy of the
+result anywhere outside your browser. If the badge feature is disabled, no
+scheduled requests happen at all. Search queries typed on the new-tab page go
+to your chosen search engine exactly as if you had typed them into the
+browser's own address bar.</p>
+<h2>Permissions and why each one exists</h2>
+<p>The extension requests only three permissions — among the smallest sets that
+can deliver its features — and each maps to a visible feature:</p>
+<table>
+<thead>
+<tr>
+<th>Permission</th>
+<th>Visible feature it powers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>storage</code></td>
+<td>Saving your settings, quick links, recents, and last status between sessions (and across your own synced browsers). Without it, the extension would forget your configuration on every restart.</td>
+</tr>
+<tr>
+<td><code>alarms</code></td>
+<td>The optional periodic site-status check ("badge" feature) you configure in Options. Alarms let the service worker wake up on schedule without keeping anything running in between. Turn the badge off and no alarms are scheduled.</td>
+</tr>
+<tr>
+<td><code>contextMenus</code></td>
+<td>The right-click "Open app window / Open app tab" items. This is the entire surface area of the feature — one menu entry that opens your configured site.</td>
+</tr>
+</tbody>
+</table>
+<p>Notably absent: <strong>no host permissions</strong> (not even optional ones), no
+<code>tabs</code>, no <code>history</code>, no <code>downloads</code>, no <code>webRequest</code>, and no content scripts.
+The status probe works with zero host access because a <code>no-cors</code> HEAD request
+only needs to <em>resolve</em> to prove reachability — the extension never reads the
+response body of any site.</p>
+<h2>Remote code</h2>
+<p>None. The extension ships 100% of its code in the package — no remotely hosted
+scripts, styles, or iframes, in line with the Chrome Web Store and Edge Add-ons
+remote-code policies. The build validator (<code>scripts/validate-extension.mjs</code>)
+fails the build if any HTML page references a remote script or stylesheet, so
+this stays true by construction.</p>
+<h2>Changes to this policy</h2>
+<p>The extension's data footprint cannot grow silently: any new permission or new
+data key requires a version bump and a CHANGELOG entry, and this page will be
+updated in the same change. The CHANGELOG (see <code>CHANGELOG.md</code>) records every
+permission change in extension history.</p></section>
+<section class="doc" id="integration" aria-label="Merge &amp; versioning guide"><h2>Merge &amp; versioning guide</h2><p class="sub">from <code>INTEGRATION.md</code></p><blockquote>
+<p>This package was built standalone (the mobile-project files in the
+original upload were not rebuilt), so it ships as a self-contained set
+of additions. This guide shows exactly what to copy where, and how to
+keep versions in sync.</p>
+</blockquote>
+<h2>What you're merging</h2>
+<pre><code>web2apk/                      ← your existing repo (Android/iOS Capacitor template)
+├── extension/                ← ADD — the whole folder
+│   ├── manifest.json           MV3 manifest (Chrome &amp; Edge)
+│   ├── common.js               shared settings schema + helpers
+│   ├── background.js           service worker
+│   ├── icons/                  16/32/48/128 px PNGs
+│   ├── popup/  options/  newtab/
+├── scripts/
+│   ├── generate-extension-icons.py   ← ADD (requires Pillow)
+│   ├── validate-extension.mjs        ← ADD (requires Node ≥ 18)
+│   └── build-extension.sh            ← ADD (requires zip)
+├── .github/workflows/
+│   └── build-extension.yml           ← ADD (new job, won't touch existing workflows)
+├── EXTENSIONS.md             ← ADD (extension user/developer guide)
+├── INTEGRATION.md            ← ADD (this file)
+├── docs/
+│   └── screenshot-newtab-1280x800.png ← ADD (store listing asset)
+├── build/extension/          ← generated by build-extension.sh (gitignore)
+└── dist/                     ← generated zips (gitignore)
+</code></pre>
+<p>Everything the extension needs lives under <code>extension/</code>, <code>scripts/</code>,
+<code>.github/workflows/</code>, and the two markdown docs. Nothing in your
+existing <code>www/</code>, <code>android/</code>, <code>ios/</code>, or Capacitor config is touched.</p>
+<h2>Merge procedure</h2>
+<h3>1. Copy the files</h3>
+<p>From the delivered <code>web2apk-browser-extensions.zip</code>, copy:</p>
+<pre><code class="language-bash"># from the unzipped package root (contains extension/, scripts/, …)
+cp -R extension/           /path/to/your/repo/
+cp    scripts/generate-extension-icons.py \
+       scripts/validate-extension.mjs \
+       scripts/build-extension.sh     /path/to/your/repo/scripts/
+mkdir -p /path/to/your/repo/.github/workflows
+cp    .github/workflows/build-extension.yml /path/to/your/repo/.github/workflows/
+cp    EXTENSIONS.md INTEGRATION.md   /path/to/your/repo/
+mkdir -p /path/to/your/repo/docs
+cp    docs/screenshot-newtab-1280x800.png /path/to/your/repo/docs/
+</code></pre>
+<h3>2. Update .gitignore</h3>
+<p>Append if not already present:</p>
+<pre><code class="language-gitignore">build/
+dist/
+</code></pre>
+<h3>3. Wire the docs</h3>
+<p>Add links to your README's navigation/feature list:</p>
+<pre><code class="language-markdown">**Also available:** [Chrome &amp; Edge browser extension](EXTENSIONS.md) —
+one-click app windows, new-tab dashboard, quick links, status badges.
+</code></pre>
+<h3>4. Verify</h3>
+<pre><code class="language-bash">cd /path/to/your/repo
+node scripts/validate-extension.mjs   # 18 checks, 0 errors expected
+bash scripts/build-extension.sh       # → dist/chrome-extension-v2.1.1.zip, dist/edge-extension-v2.1.1.zip
+</code></pre>
+<p>Then load <code>extension/</code> unpacked in Chrome/Edge (<code>chrome://extensions</code> →
+Developer mode → Load unpacked) and click through: popup → Options →
+new tab → keyboard shortcuts → context menu.</p>
+<h2>Version sync policy</h2>
+<p>The extension is a <strong>sibling product</strong>, not a submodule of the mobile
+template:</p>
+<ul>
+<li>Mobile apps: <code>package.json</code> + <code>android/app/build.gradle</code> versionName — keep versioning as you have it.</li>
+<li>Extension: <code>extension/manifest.json</code> → <code>version</code> (e.g. <code>2.1.1</code>).</li>
+</ul>
+<p>Conventions:</p>
+<ol>
+<li><strong>Independent lines.</strong> The extension started at <code>2.1.0</code> (matching the
+   template's v2.0.0 generation) and then versions independently — currently
+   <code>2.1.1</code>. Bump it whenever extension files change; don't force it to track
+   mobile releases.</li>
+<li><strong>Tag releases.</strong> <code>git tag ext-v2.1.1</code> + push triggers the CI job,
+   which attaches the store zips to a GitHub Release — the exact bits
+   CI validated. (Plain <code>v*</code> tags also work; use <code>ext-v*</code> if your repo
+   already tags mobile releases as <code>v*</code>.)</li>
+<li><strong>When you change <code>common.js</code> defaults</strong> (the shared schema), bump
+   the extension's <strong>minor</strong> version so sync-storage users get the
+   migration-safe defaults on next update.</li>
+<li><strong>Keep <code>common.js</code> self-contained.</strong> It's shared verbatim between the
+   service worker (<code>importScripts</code>) and UI pages (<code>&lt;script src&gt;</code>). No
+   ES-module syntax in it, ever — that breaks the service worker.</li>
+</ol>
+<h2>CI interplay</h2>
+<p><code>build-extension.yml</code> is additive: it runs only when files under
+<code>extension/</code>, <code>scripts/validate-extension.mjs</code>, <code>scripts/build-extension.sh</code>,
+or its own definition change (plus manual dispatch). Your existing
+Android/iOS workflows are unaffected. If your repo's default branch is
+neither <code>main</code> nor <code>master</code>, edit the <code>on.push.branches</code> list.</p>
+<h2>Uninstall / rollback</h2>
+<p>The extension is pure client-side state — deleting the <code>extension/</code>
+folder, workflow file, scripts, and docs removes it completely. Users'
+stored settings remain in their browsers until they remove the extension
+there (normal browser behavior on store update or manual removal).</p>
+<h2>Compatibility notes</h2>
+<ul>
+<li>Manifest V3, <code>minimum_chrome_version: 110</code> — Chrome, Edge, Brave,
+  Opera, Vivaldi (any Chromium ≥ 110).</li>
+<li>Firefox would need MV2-style tweaks (different APIs for optional host
+  permissions and app windows); intentionally out of scope.</li>
+<li>Safari requires a native-app wrapper and an Apple Developer account;
+  out of scope.</li>
+</ul></section>
+<section class="doc" id="license" aria-label="License (MIT)"><h2>License (MIT)</h2><p class="sub">from <code>LICENSE</code></p><p>MIT License</p>
+<p>Copyright (c) 2026 web2apk contributors</p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:</p>
+<p>The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.</p>
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</p></section>
+</div>
+<footer class="foot">
+  <p>web2apk — Web App Launcher · v2.1.1 · Chrome &amp; Edge (Manifest V3) ·
+  rendered from the repository's markdown docs at build time ·
+  <a href="/">back to the live demo</a></p>
+</footer>
+</body>
+</html>

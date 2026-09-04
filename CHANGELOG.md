@@ -1,54 +1,78 @@
-# Changelog
+# Changelog — web2apk Browser Extension
 
-All notable changes to FED-Shell will be documented in this file.
+Chrome & Edge (Manifest V3). Versions follow the extension's own line — see
+[INTEGRATION.md](INTEGRATION.md) for how it relates to the web2apk mobile
+releases. Format loosely based on [Keep a Changelog](https://keepachangelog.com/).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-### Planned
-- Release APK signing with user-provided keystore
-- Real-device iOS IPA builds (Apple Developer secrets)
-- Custom app icon injection
-- FED-PLAY auto-upload integration
-
-## [1.0.0] — 2026-08-31
+## [2.1.1] — 2026-02-05
 
 ### Added
-- **Universal fleet build workflow** (`build-all.yml`) — 8 parallel jobs
-  producing Android, iOS, and Desktop artifacts from a single URL input
-- **Cross-platform URL injector** (`scripts/inject-config.py`) — rewrites
-  capacitor.config.json, Android strings.xml, Android build.gradle, iOS
-  capacitor.config.json, iOS Info.plist, and desktop config.json
-- **Shell wrapper** (`scripts/inject-url.sh`) for CI and local use
-- **Desktop WebView wrapper** (`native-desktop/main.py`) — PySide6/QtWebEngine
-  with domain-locked navigation and external-link forwarding
-- **Desktop packager** (`native-desktop/compile-desktop.py`) — PyInstaller
-  one-file bundling with embedded config.json
-- **Android debug APKs** — per-ABI (arm64-v8a, armeabi-v7a, x86, x86_64) + universal
-- **Android release APKs** — per-ABI + universal (debug-signed)
-- **Android release AAB** — for Google Play upload
-- **iOS Simulator build** — `.app` with no Apple account required
-- **Desktop Windows build** — standalone `.exe` via matrix
-- **Desktop macOS build** — `.app` bundle via matrix
-- **Desktop Linux build** — standalone binary via matrix
-- **Optional Electron builds** — up to 2 separate repos, win/mac/linux matrix
-- **Optional Tauri build** — 1 separate repo, win/mac/linux matrix
-- **Unified artifact zip** (`package-all` job) — single download of everything
-- Comprehensive documentation: README, BUILD, INSTALL, DEPLOYMENT, ADR,
-  ROADMAP, FAQ, CONTRIBUTING, CODE_OF_CONDUCT, GOVERNANCE, SECURITY, SUPPORT,
-  PRICING, COPYING, CITATIONS, NOTICE, SUMMARY, CHANGELOG
-- GitHub community templates: bug report, feature request, custom issue,
-  pull request template, discussion welcome, FUNDING.yml
-- AI agent context files: CLAUDE.md, AGENTS.md
-- AUTHORS.md, MAINTAINERS.md
+- Keyboard accessibility pass across all three surfaces (popup, options,
+  new-tab): visible `:focus-visible` rings on every interactive element, with
+  pointer clicks kept ring-free so mouse users see no visual noise.
+- Automated keyboard-drive verification (`scripts/a11y-check.py`): tabs through
+  every control on every surface and asserts a visible focus ring on each,
+  plus a pointer-focus spot check — now part of the shipping checklist.
+- CI now smoke-tests the **packaged zip** (the exact bits users download), not
+  just the source tree, in addition to the source-level Playwright run.
+- Static deployable demo: the live demo can now be built as a fully
+  self-contained static site (`scripts/build-static-demo.py`) with a rendered
+  docs page — no server required, works under any sub-path.
+- Store documents: `PRIVACY.md` (permission justifications and data footprint)
+  and this changelog.
+- One-command package verifier (`scripts/package-final-check.sh`): unzips the
+  deliverable zip and re-runs the entire pipeline on those bits alone —
+  validate, unit tests, a11y check, store-zip build, static-demo build plus
+  its 48 checks at the site root and under `/sub/`, and a Playwright smoke
+  test of the packaged dist zip itself.
 
-### Inherited (from the original Build-Mobile-Apps-Android-iOS repo)
-- Capacitor Android project (compileSdk 36, minSdk 24)
-- Capacitor iOS project with Xcode workspace
-- Per-ABI APK splitting (arm64-v8a, armeabi-v7a, x86, x86_64 + universal)
-- Original `build.yml` workflow (kept as backup)
+### Fixed
+- Options page: text fields and selects showed **no focus ring at all** when
+  focused by keyboard — author `:focus` rules at higher specificity were
+  resetting the outline. Added matching-specificity `:focus-visible` rules so
+  keyboard users always see where they are.
+- Demo shim: `chrome.runtime.getURL()` resolved against the demo directory
+  instead of the extension tree (404 on cross-page links); the
+  "open dashboard" route is now sub-path-safe, which is what makes the
+  GitHub-Pages-style static deploy work.
+- Demo loader rewritten: the old strip-and-re-add approach let dynamically
+  inserted page scripts race the HTML parser (and double-execute alongside
+  the originals), causing a flaky `Cannot read properties of null` crash in
+  the options page when a warm cache made the dynamic copy win. The loader
+  now injects only the shim, into the parser stream via `document.write`
+  from its head-time script tag — spec-guaranteed to execute before the
+  page's own body-end scripts, which run unmodified. Verified with 6×
+  consecutive 48/48-check runs (was flaking ~1-in-4).
 
-### Security
-- `.gitignore` protects against committing keystores, `.env` files, and signing certificates
+## [2.1.0] — 2026-01-30
+
+### Added
+- **Status badges**: optional periodic reachability check for your app URL
+  (`chrome.alarms`), an OK/DOWN dot in the popup, a colored badge on the
+  toolbar icon, and a status line on the new-tab dashboard. Probe is a
+  `no-cors` HEAD request — resolves iff the network succeeds, needs **zero
+  host permissions**.
+- New-tab dashboard: clock, configurable search engines, quick-links grid
+  (up to 24, favicon tiles), recent-apps strip, keyboard shortcuts sheet.
+- Popup: open-as-app-window / open-as-tab buttons, quick links, recents,
+  live status dot with one-click re-check.
+- Options: app identity, behavior, quick-links editor, theme (light/dark/auto
+  with CSS `color-scheme`), Export/Import (JSON), Reset, live storage-area
+  indicator.
+- Context menu: "Open app window" / "Open app tab" from any page.
+
+### Changed
+- Permissions slimmed to `["storage", "alarms", "contextMenus"]` —
+  `optional_host_permissions` removed entirely once the no-cors probe landed.
+- Settings sanitizing is forgiving: scheme-less URLs like `github.com` are
+  normalized to `https://github.com` instead of silently reverting to the
+  default.
+
+## [2.0.0] — 2026-01-23
+
+### Added
+- Initial public release: Manifest V3 service-worker architecture, one-click
+  app windows (`chrome.windows` via window.open fallbacks), new-tab override,
+  options page with sync→local storage fallback, brand icon set drawn from the
+  same mark as the web2apk mobile apps, CI workflow, and store packaging for
+  Chrome Web Store + Edge Add-ons.

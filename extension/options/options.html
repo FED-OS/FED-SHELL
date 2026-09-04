@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="dark light" />
+    <title>web2apk — Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+  <body>
+    <div class="shell">
+      <header>
+        <img src="../icons/icon-128.png" alt="" width="44" height="44" />
+        <div>
+          <h1>web2apk settings</h1>
+          <p>Everything is saved automatically to your browser profile (chrome.storage.sync).</p>
+        </div>
+      </header>
+
+      <nav class="tabs" role="tablist" aria-label="Settings sections">
+        <button class="tab active" data-tab="app" role="tab" aria-selected="true">App</button>
+        <button class="tab" data-tab="behavior" role="tab" aria-selected="false">Behavior</button>
+        <button class="tab" data-tab="links" role="tab" aria-selected="false">Quick links</button>
+        <button class="tab" data-tab="about" role="tab" aria-selected="false">About</button>
+      </nav>
+
+      <!-- ── App tab ─────────────────────────────────────────────── -->
+      <section class="panel active" id="tab-app" role="tabpanel">
+        <div class="field">
+          <label for="app-name">App name</label>
+          <input id="app-name" type="text" maxlength="64" placeholder="My Web App" />
+          <p class="hint">Shown in the toolbar title, context menu, and dashboard.</p>
+        </div>
+
+        <div class="field">
+          <label for="app-url">App URL</label>
+          <input id="app-url" type="url" spellcheck="false" placeholder="https://example.com/" />
+          <p class="hint">The website this extension turns into an app.</p>
+        </div>
+
+        <div class="field">
+          <label for="open-mode">Open mode</label>
+          <select id="open-mode">
+            <option value="window">Standalone app window</option>
+            <option value="tab">Normal browser tab</option>
+          </select>
+          <p class="hint">How the app opens from the toolbar, context menu, and shortcut.</p>
+        </div>
+
+        <div class="field grid2">
+          <div>
+            <label for="win-w">Window width</label>
+            <input id="win-w" type="number" min="360" max="7680" step="10" />
+          </div>
+          <div>
+            <label for="win-h">Window height</label>
+            <input id="win-h" type="number" min="240" max="4320" step="10" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Behavior tab ────────────────────────────────────────── -->
+      <section class="panel" id="tab-behavior" role="tabpanel" hidden>
+        <div class="field">
+          <label class="check">
+            <input id="newtab-enabled" type="checkbox" />
+            <span>Take over the new-tab page with the web2apk dashboard</span>
+          </label>
+          <p class="hint">Turn off to keep your browser's default new-tab page.</p>
+        </div>
+
+        <div class="field">
+          <label for="theme">Theme</label>
+          <select id="theme">
+            <option value="auto">Follow system</option>
+            <option value="dark">Always dark</option>
+            <option value="light">Always light</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="search-engine">Search engine (dashboard)</label>
+          <select id="search-engine">
+            <option value="google">Google</option>
+            <option value="bing">Bing</option>
+            <option value="duckduckgo">DuckDuckGo</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="check">
+            <input id="badge-enabled" type="checkbox" />
+            <span>Show toolbar badge with site status (OK / DOWN)</span>
+          </label>
+          <p class="hint">The extension pings your app URL with a lightweight HEAD request.</p>
+        </div>
+
+        <div class="field">
+          <label for="badge-interval">Status check interval (minutes)</label>
+          <input id="badge-interval" type="number" min="1" max="1440" step="1" />
+        </div>
+      </section>
+
+          </section>
+      <!-- ── Quick links tab ─────────────────────────────────────── -->
+      <section class="panel" id="tab-links" role="tabpanel" hidden>
+        <p class="hint intro">
+          Quick links appear on the dashboard and in the popup. Up to 24 links.
+        </p>
+        <div id="links-list"></div>
+        <button id="add-link" class="ghost" type="button">+ Add link</button>
+      </section>
+
+      <!-- ── About tab ───────────────────────────────────────────── -->
+      <section class="panel" id="tab-about" role="tabpanel" hidden>
+        <dl class="about">
+          <div><dt>Version</dt><dd id="about-version">—</dd></div>
+          <div><dt>Browser</dt><dd id="about-browser">Chrome / Edge</dd></div>
+          <div><dt>Permissions</dt><dd>storage, alarms, contextMenus (+ optional host access)</dd></div>
+          <div><dt>Project</dt><dd><a href="https://github.com/FED-OS/Build-Mobile-Apps-Android-iOS" target="_blank" rel="noreferrer">GitHub — web2apk</a></dd></div>
+          <div><dt>Mobile apps</dt><dd>Same config builds Android (APK/AAB) + iOS apps via Capacitor.</dd></div>
+        </dl>
+        <div class="danger">
+          <h3>Reset</h3>
+          <p class="hint">Restore all settings to their defaults.</p>
+          <button id="btn-reset" class="danger-btn" type="button">Reset all settings</button>
+        </div>
+      </section>
+
+      <footer>
+        <span id="save-state" class="muted" role="status" aria-live="polite">Ready</span>
+        <span class="spacer"></span>
+        <button id="btn-export" class="ghost" type="button">Export</button>
+        <button id="btn-import" class="ghost" type="button">Import</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden />
+      </footer>
+    </div>
+
+    <script src="../common.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
